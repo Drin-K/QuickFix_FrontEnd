@@ -2,6 +2,20 @@
 
 Frontend setup for the QuickFix marketplace using React + TypeScript + Vite.
 
+## Local setup
+
+Requirements:
+
+- Node.js 20+ (see `.nvmrc`)
+
+Install + run:
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
 ## Backend connection
 
 Create a local `.env` file and point the frontend to your backend API:
@@ -45,4 +59,7 @@ src/
 npm install
 npm run dev
 npm run build
+npm run typecheck
+npm run lint
+npm run format
 ```
