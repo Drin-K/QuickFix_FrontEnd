@@ -5,7 +5,7 @@ import "@/styles/home.css";
 
 export const MainLayout = ({ children }: PropsWithChildren) => {
   return (
-    <div className="page-shell">
+    <div className="page-shell" id="top">
       <Navbar />
       <main>{children}</main>
       <Footer />
