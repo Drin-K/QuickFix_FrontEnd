@@ -63,3 +63,42 @@ npm run typecheck
 npm run lint
 npm run format
 ```
+
+## Modules 
+User: 🔹 Core Modules
+Module	Përshkrimi
+Auth	Login/Register, JWT
+Users	Menaxhimi i përdoruesve
+Roles	Role-based access
+Tenant	Multi-tenancy
+🔹 Business Modules
+Module	Përshkrimi
+Providers	Profilet e profesionistëve
+Clients	Profilet e klientëve
+Companies	Organizatat / tenant-at
+Categories	Kategoritë e shërbimeve
+Services	Shërbimet që ofrohen
+🔹 Booking System
+Module	Përshkrimi
+Bookings	Rezervimet
+BookingStatus	Statuset (pending, accepted, etc.)
+Availability	Orari i provider-it
+🔹 Interaction Modules
+Module	Përshkrimi
+Reviews	Vlerësimet
+Messages	Mesazhet
+Conversations	Chat threads
+Notifications	Njoftimet
+🔹 Utility Modules
+Module	Përshkrimi
+Address	Lokacionet
+City	Qytetet
+Favorites	Favoritet
+Reports	Raportime
+
+Module	Përshkrimi
+AI	OpenAI integration
+Search	Filtering + search
+Cache	Redis caching
+Jobs	Background tasks
+
