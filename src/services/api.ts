@@ -139,7 +139,7 @@ export const getHello = (): Promise<string> => api.get<string>("/");
 
 export const checkBackendConnection = async (): Promise<boolean> => {
   try {
-    const response = await fetch(buildUrl(""), {
+    const response = await fetch(buildUrl("/test-connection"), {
       method: "GET",
       credentials: "include",
     });
