@@ -517,3 +517,148 @@
     width: min(calc(100% - 1.25rem), var(--container-width));
   }
 }
+
+.auth-page {
+  min-height: calc(100vh - 110px);
+}
+
+.auth-page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 460px);
+  gap: 2rem;
+  align-items: center;
+}
+
+.auth-page__intro h1 {
+  margin: 0;
+  max-width: 12ch;
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  line-height: 1.05;
+}
+
+.auth-page__intro p {
+  max-width: 56ch;
+  margin: 1.25rem 0 0;
+  color: var(--color-muted);
+  font-size: 1.05rem;
+}
+
+.auth-page__benefits {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.auth-page__benefit-card,
+.auth-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1.6rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.auth-page__benefit-card {
+  padding: 1.2rem 1.3rem;
+}
+
+.auth-page__benefit-card strong {
+  display: block;
+  margin-bottom: 0.45rem;
+}
+
+.auth-page__benefit-card span,
+.auth-card__header p,
+.auth-card__footer {
+  color: var(--color-muted);
+}
+
+.auth-card {
+  padding: 2rem;
+}
+
+.auth-card__header h2 {
+  margin: 0;
+  font-size: 1.9rem;
+}
+
+.auth-card__header p {
+  margin: 0.75rem 0 0;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.75rem;
+}
+
+.auth-form__field {
+  display: grid;
+  gap: 0.55rem;
+  font-weight: 600;
+}
+
+.auth-form__input {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.auth-form__input:focus {
+  outline: 2px solid rgba(255, 122, 0, 0.18);
+  border-color: rgba(255, 122, 0, 0.5);
+}
+
+.auth-form__input--error {
+  border-color: #d64545;
+}
+
+.auth-form__error {
+  color: #c0392b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.auth-form__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.auth-form__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.auth-form__link,
+.auth-card__footer a {
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.auth-form__submit {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.auth-form__success {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.auth-card__footer {
+  margin: 1.25rem 0 0;
+}
