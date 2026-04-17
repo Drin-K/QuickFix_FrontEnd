@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 
@@ -51,7 +51,7 @@ export const LoginPage = () => {
     }
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const errors = validateForm(formValues);
