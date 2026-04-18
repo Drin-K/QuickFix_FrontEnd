@@ -1,8 +1,8 @@
-import { MainLayout } from "@/layouts/MainLayout";
+import { ClientLayout } from "@/layouts/ClientLayout";
 
 export const ClientHomePage = () => {
   return (
-    <MainLayout>
+    <ClientLayout>
       <section className="section page-placeholder">
         <div className="container">
           <div className="section-heading">
@@ -12,6 +12,6 @@ export const ClientHomePage = () => {
           </div>
         </div>
       </section>
-    </MainLayout>
+    </ClientLayout>
   );
 };

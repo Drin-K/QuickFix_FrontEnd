@@ -1,5 +1,5 @@
 import { formatRating } from "@/utils/format";
-import type { ProviderHighlight } from "@/types/home";
+import type { ProviderHighlight } from "@/types/service.types";
 
 type ProvidersSectionProps = {
   providers: ProviderHighlight[];

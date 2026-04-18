@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { NavLink } from "react-router-dom";
-import "@/styles/home.css";
+import "@/styles/components.css";
 
 export const AuthLayout = ({ children }: PropsWithChildren) => {
   return (

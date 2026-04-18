@@ -1,4 +1,4 @@
-import type { ServiceCategory } from "@/types/home";
+import type { ServiceCategory } from "@/types/service.types";
 import { Link } from "react-router-dom";
 
 type ServiceCardProps = {

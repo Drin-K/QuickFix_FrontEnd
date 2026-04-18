@@ -1,4 +1,4 @@
-import type { Statistic } from "@/types/home";
+import type { Statistic } from "@/types/service.types";
 
 type HeroSectionProps = {
   stats: Statistic[];

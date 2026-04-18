@@ -1,8 +1,8 @@
-import { MainLayout } from "@/layouts/MainLayout";
+import { AdminLayout } from "@/layouts/AdminLayout";
 
 export const AdminHomePage = () => {
   return (
-    <MainLayout>
+    <AdminLayout>
       <section className="section page-placeholder">
         <div className="container">
           <div className="section-heading">
@@ -12,6 +12,6 @@ export const AdminHomePage = () => {
           </div>
         </div>
       </section>
-    </MainLayout>
+    </AdminLayout>
   );
 };

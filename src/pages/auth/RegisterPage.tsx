@@ -1,9 +1,9 @@
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { register } from "@/services/authApi";
-import { ApiError } from "@/services/api";
-import { saveAuthSession } from "@/services/authStorage";
+import { ApiError } from "@/api/api";
 import { AuthLayout } from "@/layouts/AuthLayout";
+import { register } from "@/services/auth.service";
+import { saveAuthSession } from "@/utils/auth";
 
 type RegisterFormState = {
   fullName: string;
