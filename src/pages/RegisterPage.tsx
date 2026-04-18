@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { register } from "@/services/authApi";
 import { ApiError } from "@/services/api";
+import { saveAuthSession } from "@/services/authStorage";
 import { AuthLayout } from "@/layouts/AuthLayout";
 
 type RegisterFormState = {
@@ -20,6 +21,27 @@ const initialFormState: RegisterFormState = {
   accountType: "client",
   password: "",
   confirmPassword: "",
+};
+
+const getEmailSuffix = (accountType: RegisterFormState["accountType"]) => `@${accountType}.com`;
+
+const formatEmailWithAccountType = (
+  value: string,
+  accountType: RegisterFormState["accountType"],
+): string => {
+  const trimmedValue = value.trim().toLowerCase();
+
+  if (!trimmedValue) {
+    return "";
+  }
+
+  const localPart = trimmedValue.split("@")[0]?.replace(/[^a-z0-9._-]/g, "") ?? "";
+
+  if (!localPart) {
+    return "";
+  }
+
+  return `${localPart}${getEmailSuffix(accountType)}`;
 };
 
 const validateForm = (values: RegisterFormState): RegisterFormErrors => {
@@ -60,18 +82,50 @@ export const RegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = <T extends keyof RegisterFormState>(field: T, value: RegisterFormState[T]) => {
-    setFormValues((current) => ({
-      ...current,
-      [field]: value,
-    }));
-
+  const clearFieldError = (field: keyof RegisterFormState) => {
     if (formErrors[field]) {
       setFormErrors((current) => ({
         ...current,
         [field]: undefined,
       }));
     }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setFormValues((current) => ({
+      ...current,
+      email: formatEmailWithAccountType(value, current.accountType),
+    }));
+
+    clearFieldError("email");
+
+    if (submitError) {
+      setSubmitError("");
+    }
+  };
+
+  const handleAccountTypeChange = (accountType: RegisterFormState["accountType"]) => {
+    setFormValues((current) => ({
+      ...current,
+      accountType,
+      email: current.email ? formatEmailWithAccountType(current.email, accountType) : "",
+    }));
+
+    clearFieldError("accountType");
+    clearFieldError("email");
+
+    if (submitError) {
+      setSubmitError("");
+    }
+  };
+
+  const handleChange = <T extends keyof RegisterFormState>(field: T, value: RegisterFormState[T]) => {
+    setFormValues((current) => ({
+      ...current,
+      [field]: value,
+    }));
+
+    clearFieldError(field);
 
     if (submitError) {
       setSubmitError("");
@@ -100,9 +154,7 @@ export const RegisterPage = () => {
         accountType: formValues.accountType,
       });
 
-      if (response.accessToken) {
-        localStorage.setItem("accessToken", response.accessToken);
-      }
+      saveAuthSession(response);
 
       setSuccessMessage(response.message || "Registration successful.");
       setFormValues(initialFormState);
@@ -166,30 +218,33 @@ export const RegisterPage = () => {
               </label>
 
               <label className="auth-form__field">
-                <span>Email address</span>
-                <input
-                  autoComplete="email"
-                  className={formErrors.email ? "auth-form__input auth-form__input--error" : "auth-form__input"}
-                  name="email"
-                  placeholder="name@example.com"
-                  type="email"
-                  value={formValues.email}
-                  onChange={(event) => handleChange("email", event.target.value)}
-                />
-                {formErrors.email ? <small className="auth-form__error">{formErrors.email}</small> : null}
-              </label>
-
-              <label className="auth-form__field">
                 <span>Account type</span>
                 <select
                   className="auth-form__input"
                   name="accountType"
                   value={formValues.accountType}
-                  onChange={(event) => handleChange("accountType", event.target.value as RegisterFormState["accountType"])}
+                  onChange={(event) => handleAccountTypeChange(event.target.value as RegisterFormState["accountType"])}
                 >
                   <option value="client">Client</option>
                   <option value="provider">Provider</option>
                 </select>
+              </label>
+
+              <label className="auth-form__field">
+                <span>Email address</span>
+                <input
+                  autoComplete="email"
+                  className={formErrors.email ? "auth-form__input auth-form__input--error" : "auth-form__input"}
+                  name="email"
+                  placeholder={`mehmet${getEmailSuffix(formValues.accountType)}`}
+                  type="email"
+                  value={formValues.email}
+                  onChange={(event) => handleEmailChange(event.target.value)}
+                />
+                <small className="auth-form__hint">
+                  Email domain follows your account type: {getEmailSuffix(formValues.accountType)}
+                </small>
+                {formErrors.email ? <small className="auth-form__error">{formErrors.email}</small> : null}
               </label>
 
               <label className="auth-form__field">
