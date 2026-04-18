@@ -1,5 +1,7 @@
 import { type FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ApiError } from "@/services/api";
+import { login } from "@/services/authApi";
 import { AuthLayout } from "@/layouts/AuthLayout";
 
 type LoginFormState = {
@@ -33,9 +35,12 @@ const validateForm = (values: LoginFormState): LoginFormErrors => {
 };
 
 export const LoginPage = () => {
+  const navigate = useNavigate();
   const [formValues, setFormValues] = useState<LoginFormState>(initialFormState);
   const [formErrors, setFormErrors] = useState<LoginFormErrors>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field: keyof LoginFormState, value: string) => {
     setFormValues((current) => ({
@@ -49,14 +54,49 @@ export const LoginPage = () => {
         [field]: undefined,
       }));
     }
+
+    if (submitError) {
+      setSubmitError("");
+    }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const errors = validateForm(formValues);
     setFormErrors(errors);
-    setIsSubmitted(Object.keys(errors).length === 0);
+    setSubmitError("");
+    setSuccessMessage("");
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await login({
+        email: formValues.email.trim(),
+        password: formValues.password,
+      });
+
+      if (response.accessToken) {
+        localStorage.setItem("accessToken", response.accessToken);
+      }
+
+      setSuccessMessage(response.message || "Login successful.");
+      setFormValues(initialFormState);
+      navigate("/");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitError(error.message);
+        return;
+      }
+
+      setSubmitError("Something went wrong during login.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -130,13 +170,12 @@ export const LoginPage = () => {
                 </Link>
               </div>
 
-              <button className="button auth-form__submit" type="submit">
-                Login
+              <button className="button auth-form__submit" disabled={isSubmitting} type="submit">
+                {isSubmitting ? "Signing in..." : "Login"}
               </button>
 
-              {isSubmitted ? (
-                <p className="auth-form__success">Validation passed. Auth API hookup comes next.</p>
-              ) : null}
+              {submitError ? <p className="auth-form__error">{submitError}</p> : null}
+              {successMessage ? <p className="auth-form__success">{successMessage}</p> : null}
             </form>
 
             <p className="auth-card__footer">

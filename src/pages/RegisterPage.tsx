@@ -1,5 +1,7 @@
 import { type FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { register } from "@/services/authApi";
+import { ApiError } from "@/services/api";
 import { AuthLayout } from "@/layouts/AuthLayout";
 
 type RegisterFormState = {
@@ -51,9 +53,12 @@ const validateForm = (values: RegisterFormState): RegisterFormErrors => {
 };
 
 export const RegisterPage = () => {
+  const navigate = useNavigate();
   const [formValues, setFormValues] = useState<RegisterFormState>(initialFormState);
   const [formErrors, setFormErrors] = useState<RegisterFormErrors>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = <T extends keyof RegisterFormState>(field: T, value: RegisterFormState[T]) => {
     setFormValues((current) => ({
@@ -67,14 +72,51 @@ export const RegisterPage = () => {
         [field]: undefined,
       }));
     }
+
+    if (submitError) {
+      setSubmitError("");
+    }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const errors = validateForm(formValues);
     setFormErrors(errors);
-    setIsSubmitted(Object.keys(errors).length === 0);
+    setSubmitError("");
+    setSuccessMessage("");
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await register({
+        fullName: formValues.fullName.trim(),
+        email: formValues.email.trim(),
+        password: formValues.password,
+        accountType: formValues.accountType,
+      });
+
+      if (response.accessToken) {
+        localStorage.setItem("accessToken", response.accessToken);
+      }
+
+      setSuccessMessage(response.message || "Registration successful.");
+      setFormValues(initialFormState);
+      navigate("/login");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitError(error.message);
+        return;
+      }
+
+      setSubmitError("Something went wrong during registration.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -182,13 +224,12 @@ export const RegisterPage = () => {
                 ) : null}
               </label>
 
-              <button className="button auth-form__submit" type="submit">
-                Register
+              <button className="button auth-form__submit" disabled={isSubmitting} type="submit">
+                {isSubmitting ? "Creating account..." : "Register"}
               </button>
 
-              {isSubmitted ? (
-                <p className="auth-form__success">Validation passed. Registration API hookup comes next.</p>
-              ) : null}
+              {submitError ? <p className="auth-form__error">{submitError}</p> : null}
+              {successMessage ? <p className="auth-form__success">{successMessage}</p> : null}
             </form>
 
             <p className="auth-card__footer">
