@@ -1,4 +1,4 @@
-import { homeService } from "@/services/homeService";
+import { homeService } from "@/services/service.service";
 
 export const useHomepageData = () => {
   const categories = homeService.getServiceCategories();

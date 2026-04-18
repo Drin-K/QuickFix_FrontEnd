@@ -1,5 +1,5 @@
-import { ServiceCard } from "@/components/ServiceCard";
-import type { ServiceCategory } from "@/types/home";
+import { ServiceCard } from "@/components/public/ServiceCard";
+import type { ServiceCategory } from "@/types/service.types";
 
 type ServicesSectionProps = {
   categories: ServiceCategory[];

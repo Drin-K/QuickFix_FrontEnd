@@ -1,9 +1,9 @@
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { type AuthUserRole, login } from "@/services/authApi";
-import { ApiError } from "@/services/api";
-import { saveAuthSession } from "@/services/authStorage";
+import { ApiError } from "@/api/api";
 import { AuthLayout } from "@/layouts/AuthLayout";
+import { type AuthUserRole, login } from "@/services/auth.service";
+import { saveAuthSession } from "@/utils/auth";
 
 type LoginFormState = {
   email: string;

@@ -1,4 +1,4 @@
-import type { AuthResponse, AuthUser } from "./authApi";
+import type { AuthResponse, AuthUser } from "@/services/auth.service";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const AUTH_USER_KEY = "authUser";

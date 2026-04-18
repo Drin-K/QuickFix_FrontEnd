@@ -1,4 +1,4 @@
-import type { ProviderHighlight, ServiceCategory, Statistic } from "@/types/home";
+import type { ProviderHighlight, ServiceCategory, Statistic } from "@/types/service.types";
 
 type ServiceDetail = {
   id: string;

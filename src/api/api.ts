@@ -1,4 +1,4 @@
-import { getAccessToken } from "./authStorage";
+import { getAccessToken } from "@/utils/auth";
 
 type QueryValue = string | number | boolean | null | undefined;
 

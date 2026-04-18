@@ -1,5 +1,5 @@
-import { MainLayout } from "@/layouts/MainLayout";
-import { homeService } from "@/services/homeService";
+import { PublicLayout } from "@/layouts/PublicLayout";
+import { homeService } from "@/services/service.service";
 import { Link, useParams } from "react-router-dom";
 
 export const ServiceDetailsPage = () => {
@@ -8,7 +8,7 @@ export const ServiceDetailsPage = () => {
 
   if (!service) {
     return (
-      <MainLayout>
+      <PublicLayout>
         <section className="section service-details">
           <div className="container">
             <div className="service-details__panel">
@@ -21,12 +21,12 @@ export const ServiceDetailsPage = () => {
             </div>
           </div>
         </section>
-      </MainLayout>
+      </PublicLayout>
     );
   }
 
   return (
-    <MainLayout>
+    <PublicLayout>
       <section className="section service-details">
         <div className="container">
           <div className="service-details__hero">
@@ -94,6 +94,6 @@ export const ServiceDetailsPage = () => {
           </div>
         </div>
       </section>
-    </MainLayout>
+    </PublicLayout>
   );
 };

@@ -1,8 +1,8 @@
-import { MainLayout } from "@/layouts/MainLayout";
+import { ProviderLayout } from "@/layouts/ProviderLayout";
 
 export const ProviderHomePage = () => {
   return (
-    <MainLayout>
+    <ProviderLayout>
       <section className="section page-placeholder">
         <div className="container">
           <div className="section-heading">
@@ -12,6 +12,6 @@ export const ProviderHomePage = () => {
           </div>
         </div>
       </section>
-    </MainLayout>
+    </ProviderLayout>
   );
 };

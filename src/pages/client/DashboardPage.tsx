@@ -1,14 +1,14 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
-import { MainLayout } from "@/layouts/MainLayout";
+import { PagePlaceholder } from "@/components/common/PagePlaceholder";
+import { ClientLayout } from "@/layouts/ClientLayout";
 
 export const DashboardPage = () => {
   return (
-    <MainLayout>
+    <ClientLayout>
       <PagePlaceholder
         eyebrow="Dashboard"
         title="Manage bookings, requests and provider activity."
         description="This page will become the main dashboard for users to track services, messages, and upcoming jobs."
       />
-    </MainLayout>
+    </ClientLayout>
   );
 };
