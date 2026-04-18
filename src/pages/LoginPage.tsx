@@ -1,7 +1,8 @@
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { type AuthUserRole, login } from "@/services/authApi";
 import { ApiError } from "@/services/api";
-import { login } from "@/services/authApi";
+import { saveAuthSession } from "@/services/authStorage";
 import { AuthLayout } from "@/layouts/AuthLayout";
 
 type LoginFormState = {
@@ -32,6 +33,20 @@ const validateForm = (values: LoginFormState): LoginFormErrors => {
   }
 
   return errors;
+};
+
+const getPostLoginRoute = (role?: AuthUserRole): string => {
+  switch (role) {
+    case "provider":
+      return "/provider-home";
+    case "admin":
+    case "platform_admin":
+      return "/admin-home";
+    case "client":
+      return "/client-home";
+    default:
+      return "/";
+  }
 };
 
 export const LoginPage = () => {
@@ -80,13 +95,11 @@ export const LoginPage = () => {
         password: formValues.password,
       });
 
-      if (response.accessToken) {
-        localStorage.setItem("accessToken", response.accessToken);
-      }
+      saveAuthSession(response);
 
       setSuccessMessage(response.message || "Login successful.");
       setFormValues(initialFormState);
-      navigate("/");
+      navigate(getPostLoginRoute(response.user?.role));
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);

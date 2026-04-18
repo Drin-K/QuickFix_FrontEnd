@@ -1,3 +1,5 @@
+import { getAccessToken } from "./authStorage";
+
 type QueryValue = string | number | boolean | null | undefined;
 
 type RequestQuery = Record<string, QueryValue>;
@@ -103,8 +105,10 @@ const request = async <T>(method: string, path: string, options: ApiRequestOptio
     }
   }
 
-  if (token) {
-    requestHeaders.set("Authorization", `Bearer ${token}`);
+  const authToken = token ?? getAccessToken();
+
+  if (authToken) {
+    requestHeaders.set("Authorization", `Bearer ${authToken}`);
   }
 
   const response = await fetch(buildUrl(path, query), {

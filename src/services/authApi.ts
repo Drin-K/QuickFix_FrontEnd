@@ -12,10 +12,20 @@ export type RegisterPayload = {
   accountType: "client" | "provider";
 };
 
+export type AuthUserRole = "client" | "provider" | "admin" | "platform_admin";
+
+export type AuthUser = {
+  id: number;
+  email: string;
+  fullName: string;
+  role: AuthUserRole;
+  tenantId: number | null;
+};
+
 export type AuthResponse = {
   message: string;
   accessToken?: string;
-  user?: unknown;
+  user?: AuthUser;
 };
 
 export const login = (payload: LoginPayload): Promise<AuthResponse> =>
