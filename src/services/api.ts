@@ -73,6 +73,22 @@ const parseResponse = async (response: Response): Promise<unknown> => {
   return response.text();
 };
 
+const getErrorMessage = (data: unknown, status: number): string => {
+  if (typeof data === "object" && data !== null && "message" in data) {
+    const message = data.message;
+
+    if (typeof message === "string") {
+      return message;
+    }
+
+    if (Array.isArray(message)) {
+      return message.filter((item) => typeof item === "string").join(" ");
+    }
+  }
+
+  return `API request failed with status ${status}`;
+};
+
 const request = async <T>(method: string, path: string, options: ApiRequestOptions = {}): Promise<T> => {
   const { body, headers, query, token, ...rest } = options;
   const requestHeaders = new Headers(headers);
@@ -102,12 +118,7 @@ const request = async <T>(method: string, path: string, options: ApiRequestOptio
   const data = await parseResponse(response);
 
   if (!response.ok) {
-    const message =
-      typeof data === "object" && data !== null && "message" in data && typeof data.message === "string"
-        ? data.message
-        : `API request failed with status ${response.status}`;
-
-    throw new ApiError(message, response.status, data);
+    throw new ApiError(getErrorMessage(data, response.status), response.status, data);
   }
 
   return data as T;
