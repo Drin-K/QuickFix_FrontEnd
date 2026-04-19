@@ -2,6 +2,7 @@ import type { AuthResponse, AuthUser } from "@/services/auth.service";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 const AUTH_USER_KEY = "authUser";
+const ACTIVE_TENANT_ID_KEY = "activeTenantId";
 
 export const setAccessToken = (token: string) => {
   localStorage.setItem(ACCESS_TOKEN_KEY, token);
@@ -38,9 +39,45 @@ export const clearAuthUser = () => {
   localStorage.removeItem(AUTH_USER_KEY);
 };
 
+export const setActiveTenantId = (tenantId: number) => {
+  localStorage.setItem(ACTIVE_TENANT_ID_KEY, String(tenantId));
+};
+
+export const getStoredTenantId = (): number | null => {
+  const storedTenantId = localStorage.getItem(ACTIVE_TENANT_ID_KEY);
+
+  if (!storedTenantId) {
+    return null;
+  }
+
+  const tenantId = Number(storedTenantId);
+
+  if (!Number.isInteger(tenantId) || tenantId <= 0) {
+    localStorage.removeItem(ACTIVE_TENANT_ID_KEY);
+    return null;
+  }
+
+  return tenantId;
+};
+
+export const getActiveTenantId = (): number | null => {
+  const authUser = getAuthUser();
+
+  if (authUser?.tenantId) {
+    return authUser.tenantId;
+  }
+
+  return getStoredTenantId();
+};
+
+export const clearActiveTenantId = () => {
+  localStorage.removeItem(ACTIVE_TENANT_ID_KEY);
+};
+
 export const clearAuthSession = () => {
   clearAccessToken();
   clearAuthUser();
+  clearActiveTenantId();
 };
 
 export const saveAuthSession = (response: AuthResponse) => {
@@ -50,6 +87,10 @@ export const saveAuthSession = (response: AuthResponse) => {
 
   if (response.user) {
     setAuthUser(response.user);
+
+    if (response.user.tenantId) {
+      setActiveTenantId(response.user.tenantId);
+    }
   }
 };
 

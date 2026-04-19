@@ -6,4 +6,5 @@ export const createBooking = (payload: CreateBookingPayload): Promise<BookingApi
     body: payload,
   });
 
-export const getMyBookings = (): Promise<BookingApiItem[]> => api.get<BookingApiItem[]>("/bookings/my");
+export const getMyBookings = (): Promise<BookingApiItem[]> =>
+  api.get<BookingApiItem[]>("/bookings/my");

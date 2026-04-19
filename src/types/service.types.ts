@@ -16,3 +16,28 @@ export type ProviderHighlight = {
   rating: number;
   city: string;
 };
+
+export type ServiceApiDetails = {
+  id: number;
+  tenantId: number;
+  provider: {
+    id: number;
+    displayName: string;
+    description: string | null;
+  };
+  category: {
+    id: number;
+    name: string;
+  };
+  title: string;
+  description: string | null;
+  basePrice: string;
+  isActive: boolean;
+  images: Array<{
+    id: number;
+    imageUrl: string;
+    sortOrder: number;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+};

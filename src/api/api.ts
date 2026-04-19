@@ -1,4 +1,4 @@
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, getActiveTenantId } from "@/utils/auth";
 
 type QueryValue = string | number | boolean | null | undefined;
 
@@ -9,6 +9,7 @@ type RequestBody = BodyInit | Record<string, unknown> | unknown[] | null | undef
 export type ApiRequestOptions = Omit<RequestInit, "body" | "method"> & {
   body?: RequestBody;
   query?: RequestQuery;
+  tenantId?: number | null;
   token?: string;
 };
 
@@ -46,13 +47,17 @@ const buildUrl = (path: string, query?: RequestQuery): string => {
   return url.toString();
 };
 
-const isFormData = (value: RequestBody): value is FormData => typeof FormData !== "undefined" && value instanceof FormData;
+const isFormData = (value: RequestBody): value is FormData =>
+  typeof FormData !== "undefined" && value instanceof FormData;
 
-const isBlob = (value: RequestBody): value is Blob => typeof Blob !== "undefined" && value instanceof Blob;
+const isBlob = (value: RequestBody): value is Blob =>
+  typeof Blob !== "undefined" && value instanceof Blob;
 
-const isArrayBuffer = (value: RequestBody): value is ArrayBuffer => value instanceof ArrayBuffer;
+const isArrayBuffer = (value: RequestBody): value is ArrayBuffer =>
+  value instanceof ArrayBuffer;
 
-const isUrlSearchParams = (value: RequestBody): value is URLSearchParams => value instanceof URLSearchParams;
+const isUrlSearchParams = (value: RequestBody): value is URLSearchParams =>
+  value instanceof URLSearchParams;
 
 const isBodyInit = (value: RequestBody): value is BodyInit =>
   typeof value === "string" ||
@@ -91,8 +96,12 @@ const getErrorMessage = (data: unknown, status: number): string => {
   return `API request failed with status ${status}`;
 };
 
-const request = async <T>(method: string, path: string, options: ApiRequestOptions = {}): Promise<T> => {
-  const { body, headers, query, token, ...rest } = options;
+const request = async <T>(
+  method: string,
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<T> => {
+  const { body, headers, query, tenantId, token, ...rest } = options;
   const requestHeaders = new Headers(headers);
   let requestBody: BodyInit | undefined;
 
@@ -106,9 +115,14 @@ const request = async <T>(method: string, path: string, options: ApiRequestOptio
   }
 
   const authToken = token ?? getAccessToken();
+  const activeTenantId = tenantId ?? getActiveTenantId();
 
   if (authToken) {
     requestHeaders.set("Authorization", `Bearer ${authToken}`);
+  }
+
+  if (activeTenantId) {
+    requestHeaders.set("x-tenant-id", String(activeTenantId));
   }
 
   const response = await fetch(buildUrl(path, query), {
