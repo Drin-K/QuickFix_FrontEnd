@@ -1,17 +1,36 @@
-import { NavLink } from "react-router-dom";
-
-const navigationItems = [
-  { label: "Home", to: "/" },
-  { label: "Login", to: "/login" },
-  { label: "Register", to: "/register" },
-  { label: "Dashboard", to: "/dashboard" },
-];
+import { NavLink, useNavigate } from "react-router-dom";
+import { routePaths } from "@/routes/routePaths";
+import { clearAuthSession, getAuthUser, isAuthenticated } from "@/utils/auth";
 
 export const Navbar = () => {
+  const navigate = useNavigate();
+  const authUser = getAuthUser();
+  const authenticated = isAuthenticated();
+  const isClient = authUser?.role === "client";
+
+  const navigationItems = [
+    { label: "Home", to: routePaths.home },
+    ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
+    ...(!authenticated
+      ? [
+          { label: "Login", to: routePaths.login },
+          { label: "Register", to: routePaths.register },
+        ]
+      : []),
+    ...(!isClient && authenticated
+      ? [{ label: "Dashboard", to: routePaths.dashboard }]
+      : []),
+  ];
+
+  const handleLogout = () => {
+    clearAuthSession();
+    navigate(routePaths.home);
+  };
+
   return (
     <header className="navbar">
       <div className="container navbar__inner">
-        <NavLink className="brand" to="/">
+        <NavLink className="brand" to={routePaths.home}>
           <span className="brand__mark">QF</span>
           <span>QuickFix</span>
         </NavLink>
@@ -29,12 +48,20 @@ export const Navbar = () => {
         </nav>
 
         <div className="navbar__actions">
-          <NavLink className="button button--ghost" to="/register">
-            Become a provider
-          </NavLink>
-          <NavLink className="button" to="/login">
-            Book now
-          </NavLink>
+          {authenticated ? (
+            <button className="button button--ghost" type="button" onClick={handleLogout}>
+              Logout
+            </button>
+          ) : (
+            <>
+              <NavLink className="button button--ghost" to={routePaths.register}>
+                Become a provider
+              </NavLink>
+              <NavLink className="button" to={routePaths.login}>
+                Book now
+              </NavLink>
+            </>
+          )}
         </div>
       </div>
     </header>

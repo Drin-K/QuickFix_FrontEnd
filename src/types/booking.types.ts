@@ -18,13 +18,27 @@ export type CreateBookingPayload = {
 export type BookingApiItem = {
   id: number;
   tenantId: number;
-  clientUserId: number;
-  providerId: number;
-  serviceId: number;
-  statusId: number;
   bookingDate: string;
   totalPrice: string;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+  status: {
+    id: number;
+    name: string;
+  } | null;
+  service: {
+    id: number;
+    title: string;
+    basePrice: string;
+  } | null;
+  provider: {
+    id: number;
+    displayName: string;
+  } | null;
+  client: {
+    id: number;
+    fullName: string;
+    email: string;
+  } | null;
 };
