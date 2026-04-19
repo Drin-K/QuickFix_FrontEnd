@@ -11,6 +11,7 @@ import { DashboardPage } from "@/pages/client/DashboardPage";
 import { MyBookingsPage } from "@/pages/client/MyBookingsPage";
 import { ProviderHomePage } from "@/pages/provider/ProviderHomePage";
 import { HomePage } from "@/pages/public/HomePage";
+import { ServicesPage } from "@/pages/public/ServicesPage";
 import { ServiceDetailsPage } from "@/pages/public/ServiceDetailsPage";
 
 export const AppRouter = () => {
@@ -86,6 +87,14 @@ export const AppRouter = () => {
           <ProtectedRoute>
             <DashboardPage />
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.services}
+        element={
+          <PublicRoute>
+            <ServicesPage />
+          </PublicRoute>
         }
       />
       <Route
