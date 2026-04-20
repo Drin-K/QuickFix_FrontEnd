@@ -1,5 +1,6 @@
 export const routePaths = {
   home: "/",
+  services: "/services",
   login: "/login",
   register: "/register",
   clientHome: "/client-home",

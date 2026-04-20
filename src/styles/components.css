@@ -378,6 +378,71 @@
   margin-top: 1.5rem;
 }
 
+.services-page {
+  padding-top: 3rem;
+}
+
+.services-page__hero,
+.services-page__stat {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1.6rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.services-page__hero {
+  padding: 2rem;
+}
+
+.services-page__hero h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 1.08;
+}
+
+.services-page__hero p,
+.services-page__stat span {
+  color: var(--color-muted);
+}
+
+.services-page__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.services-page__stat {
+  padding: 1.25rem 1.5rem;
+}
+
+.services-page__stat strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 1.15rem;
+}
+
+.services-page__meta,
+.services-page__status {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.services-page__meta {
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.services-page__status {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.services-page__heading {
+  margin-bottom: 1.5rem;
+}
+
 .service-details {
   padding-top: 3rem;
 }
@@ -489,6 +554,7 @@
   .providers-grid,
   .testimonials,
   .hero__stats,
+  .services-page__summary,
   .service-details__hero,
   .service-details__content {
     grid-template-columns: 1fr;

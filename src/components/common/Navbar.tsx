@@ -10,6 +10,7 @@ export const Navbar = () => {
 
   const navigationItems = [
     { label: "Home", to: routePaths.home },
+    { label: "Services", to: routePaths.services },
     ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
     ...(!authenticated
       ? [
