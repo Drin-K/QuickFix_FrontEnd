@@ -7,6 +7,7 @@ export const Navbar = () => {
   const authUser = getAuthUser();
   const authenticated = isAuthenticated();
   const isClient = authUser?.role === "client";
+  const isProvider = authUser?.role === "provider";
   const homeRoute =
     authUser?.role === "client"
       ? routePaths.clientHome
@@ -16,20 +17,25 @@ export const Navbar = () => {
           ? routePaths.adminHome
           : routePaths.home;
 
-  const navigationItems = [
-    { label: "Home", to: homeRoute },
-    { label: "Services", to: routePaths.services },
-    ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
-    ...(!authenticated
-      ? [
-          { label: "Login", to: routePaths.login },
-          { label: "Register", to: routePaths.register },
-        ]
-      : []),
-    ...(!isClient && authenticated
-      ? [{ label: "Dashboard", to: routePaths.dashboard }]
-      : []),
-  ];
+  const navigationItems = isProvider
+    ? [
+        { label: "Home", to: homeRoute },
+        { label: "Services", to: routePaths.services },
+      ]
+    : [
+        { label: "Home", to: homeRoute },
+        { label: "Services", to: routePaths.services },
+        ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
+        ...(!authenticated
+          ? [
+              { label: "Login", to: routePaths.login },
+              { label: "Register", to: routePaths.register },
+            ]
+          : []),
+        ...(!isClient && !isProvider && authenticated
+          ? [{ label: "Dashboard", to: routePaths.dashboard }]
+          : []),
+      ];
 
   const handleLogout = () => {
     clearAuthSession();

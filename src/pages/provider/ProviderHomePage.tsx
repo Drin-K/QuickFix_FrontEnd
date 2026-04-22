@@ -1,6 +1,4 @@
-import { NavLink } from "react-router-dom";
 import { ProviderHomeLayout } from "@/layouts/ProviderHomeLayout";
-import { routePaths } from "@/routes/routePaths";
 
 export const ProviderHomePage = () => {
   return (
@@ -24,14 +22,6 @@ export const ProviderHomePage = () => {
                 <li>Guide new partners toward onboarding and sign-in.</li>
                 <li>Keep service management pages separated behind authentication.</li>
               </ul>
-              <div className="page-placeholder__actions">
-                <NavLink className="button" to={routePaths.register}>
-                  Become a provider
-                </NavLink>
-                <NavLink className="button button--ghost" to={routePaths.login}>
-                  Provider login
-                </NavLink>
-              </div>
             </div>
           </div>
         </div>
