@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { getMe } from "@/api/usersApi";
+import { ApiError } from "@/api/api";
+import { getMe, type MeResponse } from "@/api/usersApi";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { ClientLayout } from "@/layouts/ClientLayout";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
-import type { AuthUser, AuthUserRole } from "@/services/auth.service";
+import type { AuthUserRole } from "@/services/auth.service";
 import { clearAuthSession, setActiveTenantId, setAuthUser } from "@/utils/auth";
 
 const getLayoutForRole = (role: AuthUserRole | undefined) => {
@@ -22,7 +23,7 @@ const getLayoutForRole = (role: AuthUserRole | undefined) => {
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
-  const [user, setUserState] = useState<AuthUser | null>(null);
+  const [user, setUserState] = useState<MeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -46,6 +47,13 @@ export const ProfilePage = () => {
         setUserState(profile);
       } catch (error) {
         if (cancelled) return;
+
+        if (error instanceof ApiError && error.status === 401) {
+          clearAuthSession();
+          navigate(routePaths.login);
+          return;
+        }
+
         setErrorMessage(error instanceof Error ? error.message : "Failed to load profile.");
       } finally {
         if (!cancelled) setLoading(false);
@@ -57,7 +65,7 @@ export const ProfilePage = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [navigate]);
 
   const handleLogout = () => {
     clearAuthSession();
@@ -105,6 +113,12 @@ export const ProfilePage = () => {
     );
   }
 
+  const tenantLabel = user.tenant
+    ? `${user.tenant.name} (#${user.tenant.id})`
+    : user.tenantId
+      ? String(user.tenantId)
+      : "—";
+
   return (
     <Layout>
       <section className="section">
@@ -118,7 +132,10 @@ export const ProfilePage = () => {
           <div className="auth-card" style={{ maxWidth: 760 }}>
             <div className="auth-card__header">
               <h2>{user.fullName}</h2>
-              <p>{user.email}</p>
+              <p>
+                {user.email}
+                {user.phone ? ` · ${user.phone}` : ""}
+              </p>
             </div>
 
             <div className="service-details__meta-card" style={{ marginTop: "1.25rem" }}>
@@ -132,9 +149,26 @@ export const ProfilePage = () => {
               </div>
               <div>
                 <span>Tenant</span>
-                <strong>{user.tenantId ?? "—"}</strong>
+                <strong>{tenantLabel}</strong>
               </div>
             </div>
+
+            {user.role === "provider" && user.provider ? (
+              <div className="service-details__meta-card" style={{ marginTop: "1rem" }}>
+                <div>
+                  <span>Provider</span>
+                  <strong>{user.provider.displayName}</strong>
+                </div>
+                <div>
+                  <span>Type</span>
+                  <strong>{user.provider.type}</strong>
+                </div>
+                <div>
+                  <span>Verified</span>
+                  <strong>{user.provider.isVerified ? "Yes" : "No"}</strong>
+                </div>
+              </div>
+            ) : null}
 
             <div className="auth-card__footer" style={{ marginTop: "1.5rem" }}>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
@@ -152,4 +186,3 @@ export const ProfilePage = () => {
     </Layout>
   );
 };
-
