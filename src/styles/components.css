@@ -2,6 +2,13 @@
   color: var(--color-text);
 }
 
+.page-shell--client,
+.page-shell--provider,
+.page-shell--client-home,
+.page-shell--provider-home {
+  min-height: 100vh;
+}
+
 .container {
   width: min(calc(100% - 2rem), var(--container-width));
   margin: 0 auto;
@@ -378,6 +385,70 @@
   margin-top: 1.5rem;
 }
 
+.role-layout {
+  padding: 2rem 0 0;
+}
+
+.role-layout__inner {
+  padding: 1.75rem 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1.6rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.role-layout--client .role-layout__inner {
+  background: linear-gradient(135deg, rgba(255, 122, 0, 0.1), rgba(255, 179, 71, 0.08));
+}
+
+.role-layout--provider .role-layout__inner {
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(19, 34, 56, 0.06));
+}
+
+.role-layout__intro h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.role-layout__intro p {
+  max-width: 58ch;
+  color: var(--color-muted);
+}
+
+.role-home {
+  min-height: calc(100vh - 180px);
+}
+
+.role-home--client {
+  background: linear-gradient(180deg, rgba(255, 122, 0, 0.06), rgba(255, 249, 239, 0));
+}
+
+.role-home--provider {
+  background: linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(255, 249, 239, 0));
+}
+
+.role-home__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.role-home__card strong {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.role-home__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-muted);
+}
+
+.role-home__list li + li {
+  margin-top: 0.75rem;
+}
+
 .services-page {
   padding-top: 3rem;
 }
@@ -554,6 +625,7 @@
   .providers-grid,
   .testimonials,
   .hero__stats,
+  .role-home__hero,
   .services-page__summary,
   .service-details__hero,
   .service-details__content {

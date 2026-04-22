@@ -7,9 +7,17 @@ export const Navbar = () => {
   const authUser = getAuthUser();
   const authenticated = isAuthenticated();
   const isClient = authUser?.role === "client";
+  const homeRoute =
+    authUser?.role === "client"
+      ? routePaths.clientHome
+      : authUser?.role === "provider"
+        ? routePaths.providerHome
+        : authUser?.role === "admin" || authUser?.role === "platform_admin"
+          ? routePaths.adminHome
+          : routePaths.home;
 
   const navigationItems = [
-    { label: "Home", to: routePaths.home },
+    { label: "Home", to: homeRoute },
     { label: "Services", to: routePaths.services },
     ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
     ...(!authenticated
@@ -31,7 +39,7 @@ export const Navbar = () => {
   return (
     <header className="navbar">
       <div className="container navbar__inner">
-        <NavLink className="brand" to={routePaths.home}>
+        <NavLink className="brand" to={homeRoute}>
           <span className="brand__mark">QF</span>
           <span>QuickFix</span>
         </NavLink>
