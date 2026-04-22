@@ -1,4 +1,4 @@
-import { api } from "@/api/api";
+﻿import { api } from "@/api/api";
 import type { BookingApiItem, CreateBookingPayload } from "@/types/booking.types";
 
 export const createBooking = (
@@ -6,7 +6,8 @@ export const createBooking = (
 ): Promise<BookingApiItem> =>
   api.post<BookingApiItem>("/bookings", {
     body: payload,
+    requireAuth: true,
   });
 
 export const getMyBookings = (): Promise<BookingApiItem[]> =>
-  api.get<BookingApiItem[]>("/bookings/my");
+  api.get<BookingApiItem[]>("/bookings/my", { requireAuth: true });
