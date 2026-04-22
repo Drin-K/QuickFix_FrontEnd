@@ -21,10 +21,12 @@ export const Navbar = () => {
     ? [
         { label: "Home", to: homeRoute },
         { label: "Services", to: routePaths.services },
+        ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
       ]
     : [
         { label: "Home", to: homeRoute },
         { label: "Services", to: routePaths.services },
+        ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
         ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
         ...(!authenticated
           ? [

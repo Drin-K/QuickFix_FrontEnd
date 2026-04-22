@@ -13,6 +13,7 @@ import { ProviderHomePage } from "@/pages/provider/ProviderHomePage";
 import { HomePage } from "@/pages/public/HomePage";
 import { ServicesPage } from "@/pages/public/ServicesPage";
 import { ServiceDetailsPage } from "@/pages/public/ServiceDetailsPage";
+import { ProfilePage } from "@/pages/common/ProfilePage";
 
 export const AppRouter = () => {
   return (
@@ -82,6 +83,14 @@ export const AppRouter = () => {
         element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.profile}
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />
