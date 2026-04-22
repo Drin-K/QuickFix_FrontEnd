@@ -44,11 +44,9 @@ export const AppRouter = () => {
       <Route
         path={routePaths.clientHome}
         element={
-          <ProtectedRoute>
-            <RoleRoute allowedRoles={["client"]}>
-              <ClientHomePage />
-            </RoleRoute>
-          </ProtectedRoute>
+          <PublicRoute>
+            <ClientHomePage />
+          </PublicRoute>
         }
       />
       <Route
@@ -64,11 +62,9 @@ export const AppRouter = () => {
       <Route
         path={routePaths.providerHome}
         element={
-          <ProtectedRoute>
-            <RoleRoute allowedRoles={["provider"]}>
-              <ProviderHomePage />
-            </RoleRoute>
-          </ProtectedRoute>
+          <PublicRoute>
+            <ProviderHomePage />
+          </PublicRoute>
         }
       />
       <Route
