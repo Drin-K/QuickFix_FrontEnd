@@ -1,7 +1,9 @@
 import { api } from "@/api/api";
 import type { BookingApiItem, CreateBookingPayload } from "@/types/booking.types";
 
-export const createBooking = (payload: CreateBookingPayload): Promise<BookingApiItem> =>
+export const createBooking = (
+  payload: CreateBookingPayload,
+): Promise<BookingApiItem> =>
   api.post<BookingApiItem>("/bookings", {
     body: payload,
   });

@@ -1,6 +1,6 @@
 import { ClientLayout } from "@/layouts/ClientLayout";
 import { ApiError } from "@/api/api";
-import { getMyBookings } from "@/api/bookingsApi";
+import { getMyBookings } from "@/services/booking.service";
 import type { BookingApiItem, BookingStatus } from "@/types/booking.types";
 import { getActiveTenantId } from "@/utils/auth";
 import { formatDateTime } from "@/utils/format";
