@@ -1,7 +1,7 @@
 import { ApiError } from "@/api/api";
-import { createBooking } from "@/api/bookingsApi";
-import { getServiceById } from "@/api/servicesApi";
+import { createBooking } from "@/services/booking.service";
 import { PublicLayout } from "@/layouts/PublicLayout";
+import { getServiceById } from "@/services/service.service";
 import type { ServiceApiDetails } from "@/types/service.types";
 import {
   getActiveTenantId,

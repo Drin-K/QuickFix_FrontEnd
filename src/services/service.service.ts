@@ -1,4 +1,23 @@
-import type { ProviderHighlight, ServiceCategory, Statistic } from "@/types/service.types";
+import { api } from "@/api/api";
+import type {
+  ProviderHighlight,
+  ServiceApiDetails,
+  ServiceCategory,
+  Statistic,
+} from "@/types/service.types";
+
+export type ServiceApiListItem = {
+  id: number;
+  tenantId: number;
+  title: string;
+  description: string | null;
+  basePrice: string;
+  isActive: boolean;
+};
+
+type GetServicesParams = {
+  tenantId?: number | null;
+};
 
 type ServiceDetail = {
   id: string;
@@ -79,6 +98,21 @@ const serviceDetails: ServiceDetail[] = [
     highlights: ["Furniture assembly", "Minor wall repairs", "Seasonal maintenance"],
   },
 ];
+
+export const getServices = ({
+  tenantId,
+}: GetServicesParams = {}): Promise<ServiceApiListItem[]> =>
+  api.get<ServiceApiListItem[]>("/services", {
+    tenantId,
+  });
+
+export const getServiceById = (
+  serviceId: number,
+  tenantId?: number | null,
+): Promise<ServiceApiDetails> =>
+  api.get<ServiceApiDetails>(`/services/${serviceId}`, {
+    tenantId,
+  });
 
 export const homeService = {
   getServiceCategories(): ServiceCategory[] {
