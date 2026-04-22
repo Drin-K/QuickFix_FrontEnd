@@ -1,4 +1,4 @@
-import { getAccessToken, getActiveTenantId } from "@/utils/auth";
+﻿import { getValidAccessToken, getActiveTenantId } from "@/utils/auth";
 
 type QueryValue = string | number | boolean | null | undefined;
 
@@ -11,6 +11,7 @@ export type ApiRequestOptions = Omit<RequestInit, "body" | "method"> & {
   query?: RequestQuery;
   tenantId?: number | null;
   token?: string;
+  requireAuth?: boolean;
 };
 
 export class ApiError extends Error {
@@ -53,8 +54,7 @@ const isFormData = (value: RequestBody): value is FormData =>
 const isBlob = (value: RequestBody): value is Blob =>
   typeof Blob !== "undefined" && value instanceof Blob;
 
-const isArrayBuffer = (value: RequestBody): value is ArrayBuffer =>
-  value instanceof ArrayBuffer;
+const isArrayBuffer = (value: RequestBody): value is ArrayBuffer => value instanceof ArrayBuffer;
 
 const isUrlSearchParams = (value: RequestBody): value is URLSearchParams =>
   value instanceof URLSearchParams;
@@ -101,7 +101,7 @@ const request = async <T>(
   path: string,
   options: ApiRequestOptions = {},
 ): Promise<T> => {
-  const { body, headers, query, tenantId, token, ...rest } = options;
+  const { body, headers, query, tenantId, token, requireAuth, ...rest } = options;
   const requestHeaders = new Headers(headers);
   let requestBody: BodyInit | undefined;
 
@@ -114,7 +114,12 @@ const request = async <T>(
     }
   }
 
-  const authToken = token ?? getAccessToken();
+  const authToken = token ?? getValidAccessToken();
+
+  if (requireAuth && !authToken) {
+    throw new ApiError("Authentication is required", 401, null);
+  }
+
   const activeTenantId = tenantId ?? getActiveTenantId();
 
   if (authToken) {

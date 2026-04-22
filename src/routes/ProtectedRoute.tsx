@@ -1,15 +1,18 @@
-import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+﻿import type { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { routePaths } from "@/routes/routePaths";
-import { isAuthenticated } from "@/utils/auth";
+import { clearAuthSession, isAuthenticated } from "@/utils/auth";
 
 type ProtectedRouteProps = {
   children: ReactNode;
 };
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const location = useLocation();
+
   if (!isAuthenticated()) {
-    return <Navigate replace to={routePaths.login} />;
+    clearAuthSession();
+    return <Navigate replace state={{ from: location }} to={routePaths.login} />;
   }
 
   return <>{children}</>;

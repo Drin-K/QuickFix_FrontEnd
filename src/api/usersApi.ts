@@ -16,4 +16,5 @@ export type MeResponse = AuthUser & {
   } | null;
 };
 
-export const getMe = (): Promise<MeResponse> => api.get<MeResponse>("/users/me");
+export const getMe = (): Promise<MeResponse> =>
+  api.get<MeResponse>("/users/me", { requireAuth: true });
