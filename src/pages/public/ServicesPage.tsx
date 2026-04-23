@@ -5,8 +5,8 @@ import { PublicLayout } from "@/layouts/PublicLayout";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
 import type { AuthUserRole } from "@/services/auth.service";
-import { getServices } from "@/services/service.service";
-import type { ServiceApiListItem } from "@/types/service.types";
+import { getCategories, getServices } from "@/services/service.service";
+import type { ServiceApiCategory, ServiceApiListItem } from "@/types/service.types";
 import {
   getActiveTenantId,
   getAuthUser,
@@ -20,6 +20,7 @@ import { Link, useSearchParams } from "react-router-dom";
 const ServicesPageContent = () => {
   const [searchParams] = useSearchParams();
   const [services, setServices] = useState<ServiceApiListItem[]>([]);
+  const [categories, setCategories] = useState<ServiceApiCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -32,6 +33,7 @@ const ServicesPageContent = () => {
 
     if (!tenantId) {
       setServices([]);
+      setCategories([]);
       setErrorMessage(
         "Tenant context is missing. Open this page from a tenant-specific link or sign in first.",
       );
@@ -46,10 +48,16 @@ const ServicesPageContent = () => {
         setIsLoading(true);
         setErrorMessage("");
 
-        const response = await getServices({ tenantId });
-        setServices(response.services);
+        const [servicesResponse, categoriesResponse] = await Promise.all([
+          getServices({ tenantId }),
+          getCategories({ tenantId }).catch(() => ({ categories: [] })),
+        ]);
+
+        setServices(servicesResponse.services);
+        setCategories(categoriesResponse.categories);
       } catch (error) {
         setServices([]);
+        setCategories([]);
 
         if (error instanceof ApiError) {
           setErrorMessage(error.message);
@@ -100,16 +108,29 @@ const ServicesPageContent = () => {
             <span>services with provider details</span>
           </div>
           <div className="services-page__stat">
-            <strong>
-              {new Set(
-                services
-                  .map((service) => service.category?.name)
-                  .filter((categoryName): categoryName is string => Boolean(categoryName)),
-              ).size}
-            </strong>
-            <span>categories in this tenant</span>
+            <strong>{categories.length}</strong>
+            <span>categories from backend</span>
           </div>
         </div>
+
+        {categories.length > 0 ? (
+          <div className="services-page__filters" aria-label="Service categories">
+            <div className="section-heading services-page__heading">
+              <h2>Browse by category</h2>
+              <p>
+                Categories are loaded from `GET /categories`. Full filtering will be added
+                in a later step.
+              </p>
+            </div>
+            <div className="services-page__chips">
+              {categories.map((category) => (
+                <span key={category.id} className="services-page__chip">
+                  {category.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="section-heading services-page__heading">
           <h2>Available services</h2>
@@ -156,7 +177,7 @@ const ServicesPageContent = () => {
                     {service.provider?.displayName ?? "Provider information unavailable"}
                   </span>
                   <span className="services-page__status">
-                    {service.category?.name ?? "Uncategorized"} · EUR {service.basePrice}
+                    {service.category?.name ?? "Uncategorized"} - EUR {service.basePrice}
                   </span>
                   <span className="service-card__link">View service details</span>
                 </article>

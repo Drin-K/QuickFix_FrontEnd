@@ -42,6 +42,16 @@ export type ServicesApiListResponse = {
   services: ServiceApiListItem[];
 };
 
+export type ServiceApiCategory = {
+  id: number;
+  name: string;
+  description: string | null;
+};
+
+export type CategoriesApiResponse = {
+  categories: ServiceApiCategory[];
+};
+
 export type ServiceApiDetails = {
   id: number;
   tenantId: number;
