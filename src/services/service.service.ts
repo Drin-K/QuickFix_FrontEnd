@@ -1,20 +1,13 @@
 import { api } from "@/api/api";
 import type {
+  CategoriesApiResponse,
   ProviderHighlight,
+  ServiceApiCategory,
   ServiceApiDetails,
   ServiceCategory,
   ServicesApiListResponse,
   Statistic,
 } from "@/types/service.types";
-
-export type ServiceApiListItem = {
-  id: number;
-  tenantId: number;
-  title: string;
-  description: string | null;
-  basePrice: string;
-  isActive: boolean;
-};
 
 type GetServicesParams = {
   tenantId?: number | null;
@@ -106,6 +99,36 @@ export const getServices = ({
   api.get<ServicesApiListResponse>("/services", {
     tenantId,
   });
+
+const normalizeCategoriesResponse = (
+  response: CategoriesApiResponse | ServiceApiCategory[] | { data: ServiceApiCategory[] },
+): CategoriesApiResponse => {
+  if (Array.isArray(response)) {
+    return { categories: response };
+  }
+
+  if ("categories" in response && Array.isArray(response.categories)) {
+    return response;
+  }
+
+  if ("data" in response && Array.isArray(response.data)) {
+    return { categories: response.data };
+  }
+
+  return { categories: [] };
+};
+
+export const getCategories = async ({
+  tenantId,
+}: GetServicesParams = {}): Promise<CategoriesApiResponse> => {
+  const response = await api.get<
+    CategoriesApiResponse | ServiceApiCategory[] | { data: ServiceApiCategory[] }
+  >("/categories", {
+    tenantId,
+  });
+
+  return normalizeCategoriesResponse(response);
+};
 
 export const getServiceById = (
   serviceId: number,

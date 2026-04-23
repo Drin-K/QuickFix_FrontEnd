@@ -514,6 +514,28 @@
   margin-bottom: 1.5rem;
 }
 
+.services-page__filters {
+  margin-bottom: 2rem;
+}
+
+.services-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.services-page__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+}
+
 .service-details {
   padding-top: 3rem;
 }
