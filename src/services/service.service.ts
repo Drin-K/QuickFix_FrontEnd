@@ -3,6 +3,7 @@ import type {
   ProviderHighlight,
   ServiceApiDetails,
   ServiceCategory,
+  ServicesApiListResponse,
   Statistic,
 } from "@/types/service.types";
 
@@ -101,8 +102,8 @@ const serviceDetails: ServiceDetail[] = [
 
 export const getServices = ({
   tenantId,
-}: GetServicesParams = {}): Promise<ServiceApiListItem[]> =>
-  api.get<ServiceApiListItem[]>("/services", {
+}: GetServicesParams = {}): Promise<ServicesApiListResponse> =>
+  api.get<ServicesApiListResponse>("/services", {
     tenantId,
   });
 

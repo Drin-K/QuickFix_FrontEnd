@@ -17,6 +17,31 @@ export type ProviderHighlight = {
   city: string;
 };
 
+export type ServiceApiListItem = {
+  id: number;
+  tenantId: number;
+  title: string;
+  description: string | null;
+  basePrice: string;
+  isActive: boolean;
+  category: {
+    id: number;
+    name: string;
+  } | null;
+  provider: {
+    id: number;
+    displayName: string;
+    description: string | null;
+  } | null;
+  coverImageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ServicesApiListResponse = {
+  services: ServiceApiListItem[];
+};
+
 export type ServiceApiDetails = {
   id: number;
   tenantId: number;
