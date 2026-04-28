@@ -1,4 +1,4 @@
-﻿import { api } from "@/api/api";
+import { api } from "@/api/api";
 import type { BookingApiItem, BookingStatus, CreateBookingPayload } from "@/types/booking.types";
 
 export const createBooking = (
@@ -15,15 +15,12 @@ export const getMyBookings = (): Promise<BookingApiItem[]> =>
 export const getProviderBookings = (): Promise<BookingApiItem[]> =>
   api.get<BookingApiItem[]>("/bookings/provider", { requireAuth: true });
 
-export type UpdateBookingStatusPayload = {
-  status: BookingStatus | string;
-};
-
 export const updateBookingStatus = (
   bookingId: number,
-  payload: UpdateBookingStatusPayload,
+  status: BookingStatus,
 ): Promise<BookingApiItem> =>
   api.patch<BookingApiItem>(`/bookings/${bookingId}/status`, {
-    body: payload,
+    body: { status },
     requireAuth: true,
   });
+
