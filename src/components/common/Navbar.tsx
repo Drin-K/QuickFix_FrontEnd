@@ -21,6 +21,9 @@ export const Navbar = () => {
     ? [
         { label: "Home", to: homeRoute },
         { label: "Services", to: routePaths.services },
+        ...(authenticated
+          ? [{ label: "Availability", to: routePaths.providerAvailability }]
+          : []),
         ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
       ]
     : [
