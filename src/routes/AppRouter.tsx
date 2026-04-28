@@ -10,6 +10,7 @@ import { ClientHomePage } from "@/pages/client/ClientHomePage";
 import { DashboardPage } from "@/pages/client/DashboardPage";
 import { MyBookingsPage } from "@/pages/client/MyBookingsPage";
 import { ProviderHomePage } from "@/pages/provider/ProviderHomePage";
+import { AvailabilityPage } from "@/pages/provider/AvailabilityPage";
 import { HomePage } from "@/pages/public/HomePage";
 import { ServicesPage } from "@/pages/public/ServicesPage";
 import { ServiceDetailsPage } from "@/pages/public/ServiceDetailsPage";
@@ -66,6 +67,16 @@ export const AppRouter = () => {
           <PublicRoute>
             <ProviderHomePage />
           </PublicRoute>
+        }
+      />
+      <Route
+        path={routePaths.providerAvailability}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["provider"]}>
+              <AvailabilityPage />
+            </RoleRoute>
+          </ProtectedRoute>
         }
       />
       <Route
