@@ -1,3 +1,4 @@
+import { routePaths } from "@/routes/routePaths";
 import type { Statistic } from "@/types/service.types";
 
 type HeroSectionProps = {
@@ -8,20 +9,20 @@ export const HeroSection = ({ stats }: HeroSectionProps) => {
   return (
     <section className="hero" id="hero">
       <div className="container hero__grid">
-        <div>
-          <span className="eyebrow">Fast local help for every repair</span>
-          <h1>Book trusted home service professionals in just a few clicks.</h1>
+        <div className="hero__content">
+          <span className="eyebrow">Explore first, book when ready</span>
+          <h1>Find trusted local help for home repairs.</h1>
           <p className="hero__copy">
-            QuickFix helps customers discover electricians, plumbers and maintenance teams,
-            compare ratings, and schedule service with confidence.
+            Browse popular services, compare verified providers, and sign in only when
+            you are ready to request a booking.
           </p>
 
           <div className="hero__actions">
             <a className="button" href="#services">
-              Explore services
+              Browse services
             </a>
-            <a className="button button--ghost" href="#how-it-works">
-              How it works
+            <a className="button button--ghost" href={routePaths.login}>
+              Log in to book
             </a>
           </div>
 
@@ -35,26 +36,26 @@ export const HeroSection = ({ stats }: HeroSectionProps) => {
           </div>
         </div>
 
-        <aside className="hero-card">
-          <div className="hero-card__badge">AI Powered Matchmaking</div>
-          <h2>Quick suggestions based on urgency, location and ratings.</h2>
+        <aside className="hero-card" aria-label="Booking preview">
+          <div className="hero-card__badge">Booking preview</div>
+          <h2>See the service details before creating a request.</h2>
           <p>
-            Customers receive smarter provider suggestions while businesses manage new
-            requests from one streamlined dashboard.
+            Public visitors can discover what is available. Booking, provider messaging,
+            and appointment tracking continue after login.
           </p>
 
           <div className="hero-card__list">
             <div>
-              <span>Response time</span>
-              <strong>Under 15 min</strong>
+              <span>Browse</span>
+              <strong>Categories and providers</strong>
             </div>
             <div>
-              <span>Top match</span>
-              <strong>Best rated nearby pro</strong>
+              <span>Compare</span>
+              <strong>Ratings, location and price</strong>
             </div>
             <div>
-              <span>Trust signals</span>
-              <strong>Reviews, badges, verified profiles</strong>
+              <span>Continue</span>
+              <strong>Log in to send a booking</strong>
             </div>
           </div>
         </aside>

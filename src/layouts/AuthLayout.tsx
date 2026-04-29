@@ -11,15 +11,6 @@ export const AuthLayout = ({ children }: PropsWithChildren) => {
             <span className="brand__mark">QF</span>
             <span>QuickFix</span>
           </NavLink>
-
-          <div className="navbar__actions">
-            <NavLink className="button button--ghost" to="/register">
-              Create account
-            </NavLink>
-            <NavLink className="button" to="/login">
-              Sign in
-            </NavLink>
-          </div>
         </div>
       </header>
 
@@ -27,4 +18,3 @@ export const AuthLayout = ({ children }: PropsWithChildren) => {
     </div>
   );
 };
-

@@ -8,14 +8,14 @@ type ServiceCardProps = {
 
 export const ServiceCard = ({ category }: ServiceCardProps) => {
   return (
-    <Link className="service-card service-card--interactive" to={routePaths.services}>
+    <Link className="service-card service-card--interactive" to={routePaths.login}>
       <article>
         <div className="service-card__icon" aria-hidden="true">
           {category.icon}
         </div>
         <h3>{category.title}</h3>
         <p>{category.description}</p>
-        <span className="service-card__link">Browse category</span>
+        <span className="service-card__link">Log in to book</span>
       </article>
     </Link>
   );
