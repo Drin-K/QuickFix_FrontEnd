@@ -24,10 +24,10 @@ const providerActions = [
     to: routePaths.providerAvailability,
   },
   {
-    title: "Update profile",
-    description: "Review your account information and keep contact details current.",
-    label: "Open profile",
-    to: routePaths.profile,
+    title: "Verification",
+    description: "Manage verification documents and track the current profile review status.",
+    label: "Open verification",
+    to: routePaths.providerVerification,
   },
 ];
 
@@ -57,6 +57,9 @@ export const ProviderHomePage = () => {
                 </NavLink>
                 <NavLink className="button button--ghost" to={routePaths.providerAvailability}>
                   Set availability
+                </NavLink>
+                <NavLink className="button button--ghost" to={routePaths.providerVerification}>
+                  Verification
                 </NavLink>
               </div>
             </div>
@@ -121,7 +124,7 @@ export const ProviderHomePage = () => {
               <p>
                 {isVerified
                   ? "Verified profiles can build stronger trust with clients."
-                  : "Verification will be handled in the next step. For now, keep your details and documents ready."}
+                  : "Open the verification page to manage documents and track review readiness."}
               </p>
             </div>
             <div className="workspace-check-list">

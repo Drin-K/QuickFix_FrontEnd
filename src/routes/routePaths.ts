@@ -10,6 +10,7 @@ export const routePaths = {
   providerSetup: "/provider/setup",
   providerBookings: "/provider/bookings",
   providerAvailability: "/provider/availability",
+  providerVerification: "/provider/verification",
   adminHome: "/admin-home",
   dashboard: "/dashboard",
   serviceDetails: "/services/:id",
