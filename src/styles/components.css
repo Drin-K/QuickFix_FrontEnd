@@ -519,6 +519,171 @@
   margin-top: 0.75rem;
 }
 
+.workspace-hero,
+.workspace-stats,
+.workspace-grid,
+.workspace-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.workspace-hero {
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+  align-items: stretch;
+  padding: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.95rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(233, 251, 247, 0.86)),
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.18), transparent 34%);
+  box-shadow: var(--shadow-soft);
+}
+
+.workspace-hero--provider {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(239, 250, 255, 0.88)),
+    radial-gradient(circle at top right, rgba(125, 211, 252, 0.18), transparent 34%);
+}
+
+.workspace-hero h1 {
+  max-width: 12ch;
+  margin: 0;
+  font-size: clamp(2.45rem, 5vw, 4.1rem);
+  line-height: 1.04;
+}
+
+.workspace-hero p {
+  max-width: 58ch;
+  color: var(--color-muted);
+  font-size: 1.06rem;
+}
+
+.workspace-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1.6rem;
+}
+
+.workspace-summary-card,
+.workspace-stat-card,
+.workspace-action-card,
+.workspace-panel {
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.workspace-summary-card {
+  display: grid;
+  align-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+
+.workspace-summary-card span {
+  color: var(--color-accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.workspace-summary-card strong {
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.workspace-summary-card p,
+.workspace-action-card p,
+.workspace-panel p {
+  color: var(--color-muted);
+}
+
+.workspace-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.workspace-stat-card {
+  padding: 1.25rem;
+}
+
+.workspace-stat-card strong {
+  display: block;
+  font-size: 1.85rem;
+  line-height: 1;
+}
+
+.workspace-stat-card span {
+  display: block;
+  margin-top: 0.55rem;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.workspace-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.workspace-action-card {
+  display: grid;
+  gap: 1rem;
+  min-height: 210px;
+  padding: 1.35rem;
+}
+
+.workspace-action-card h2,
+.workspace-panel h2 {
+  margin: 0;
+}
+
+.workspace-card-link {
+  align-self: end;
+  color: var(--color-accent);
+  font-weight: 800;
+}
+
+.workspace-card-link::after {
+  content: " ->";
+}
+
+.workspace-panel {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.85fr);
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background:
+    linear-gradient(135deg, rgba(23, 50, 77, 0.04), rgba(45, 212, 191, 0.1)),
+    var(--color-surface);
+}
+
+.workspace-panel--provider {
+  background:
+    linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(125, 211, 252, 0.11)),
+    var(--color-surface);
+}
+
+.workspace-pill-list,
+.workspace-check-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.workspace-pill-list span,
+.workspace-check-list span {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(16, 169, 155, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-text);
+  font-weight: 700;
+}
+
 .services-page {
   padding-top: 3rem;
 }
@@ -719,6 +884,10 @@
   .testimonials,
   .hero__stats,
   .role-home__hero,
+  .workspace-hero,
+  .workspace-stats,
+  .workspace-grid,
+  .workspace-panel,
   .services-page__summary,
   .service-details__hero,
   .service-details__content {
@@ -747,6 +916,7 @@
 
   .navbar__actions .button,
   .hero__actions .button,
+  .workspace-hero__actions .button,
   .cta-banner__actions .button {
     width: 100%;
   }
@@ -773,8 +943,15 @@
   .testimonial-card,
   .hero-card,
   .provider-card,
+  .workspace-hero,
+  .workspace-action-card,
+  .workspace-panel,
   .cta-banner {
     padding: 1.15rem;
+  }
+
+  .workspace-hero h1 {
+    max-width: none;
   }
 
   .container {
