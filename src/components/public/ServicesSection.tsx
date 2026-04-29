@@ -11,10 +11,10 @@ export const ServicesSection = ({ categories }: ServicesSectionProps) => {
       <div className="container">
         <div className="section-heading">
           <span className="eyebrow">Popular services</span>
-          <h2>Everything customers need for home repairs and maintenance.</h2>
+          <h2>Preview the work QuickFix can help you arrange.</h2>
           <p>
-            Search by category, compare trusted providers, and reserve the right service for
-            the job.
+            Services stay visible on the public page so visitors can understand the
+            marketplace before signing in. Booking actions continue through the auth flow.
           </p>
         </div>
 
