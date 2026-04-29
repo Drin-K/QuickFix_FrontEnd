@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { ProviderHomeLayout } from "@/layouts/ProviderHomeLayout";
 import { routePaths } from "@/routes/routePaths";
+import { getProviderSetupDraft } from "@/services/provider.service";
 import { getAuthUser } from "@/utils/auth";
 
 const providerStats = [
@@ -24,7 +25,7 @@ const providerActions = [
   },
   {
     title: "Update profile",
-    description: "Keep your provider details polished for clients comparing options.",
+    description: "Review your account information and keep contact details current.",
     label: "Open profile",
     to: routePaths.profile,
   },
@@ -33,6 +34,9 @@ const providerActions = [
 export const ProviderHomePage = () => {
   const user = getAuthUser();
   const displayName = user?.fullName || "Provider";
+  const setupDraft = getProviderSetupDraft();
+  const setupComplete = Boolean(setupDraft?.isSetupComplete);
+  const isVerified = Boolean(setupDraft?.isVerified);
 
   return (
     <ProviderHomeLayout>
@@ -74,6 +78,29 @@ export const ProviderHomePage = () => {
           </div>
 
           <div className="workspace-grid">
+            <article
+              className={
+                setupComplete
+                  ? "workspace-action-card workspace-action-card--setup-complete"
+                  : "workspace-action-card workspace-action-card--setup-needed"
+              }
+            >
+              <div>
+                <span className="workspace-status-label">
+                  {setupComplete ? "Setup complete" : "Setup required"}
+                </span>
+                <h2>{setupComplete ? "Your provider profile is ready." : "You are not set up yet."}</h2>
+                <p>
+                  {setupComplete
+                    ? "Your basic provider details are saved. Verification is the next step before clients fully trust the profile."
+                    : "Choose whether you work as an individual or company, then add the details clients need before booking."}
+                </p>
+              </div>
+              <NavLink className="workspace-card-link" to={routePaths.providerSetup}>
+                {setupComplete ? "Review setup" : "Start setup"}
+              </NavLink>
+            </article>
+
             {providerActions.map((action) => (
               <article className="workspace-action-card" key={action.title}>
                 <div>
@@ -89,14 +116,18 @@ export const ProviderHomePage = () => {
 
           <div className="workspace-panel workspace-panel--provider">
             <div>
-              <span className="eyebrow">Operational checklist</span>
-              <h2>Keep the business ready for new demand.</h2>
-              <p>These small habits make the provider experience feel more complete.</p>
+              <span className="eyebrow">Verification status</span>
+              <h2>{isVerified ? "Your provider profile is verified." : "Your provider profile is not verified yet."}</h2>
+              <p>
+                {isVerified
+                  ? "Verified profiles can build stronger trust with clients."
+                  : "Verification will be handled in the next step. For now, keep your details and documents ready."}
+              </p>
             </div>
             <div className="workspace-check-list">
-              <span>Confirm pending requests</span>
-              <span>Refresh weekly availability</span>
-              <span>Review completed jobs</span>
+              <span>{setupComplete ? "Setup completed" : "Setup missing"}</span>
+              <span>{isVerified ? "Verified" : "Verification pending"}</span>
+              <span>{setupDraft?.documents.length ? "Documents drafted" : "Documents not added"}</span>
             </div>
           </div>
         </div>

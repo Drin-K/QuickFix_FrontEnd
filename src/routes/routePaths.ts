@@ -7,6 +7,7 @@ export const routePaths = {
   clientHome: "/client-home",
   myBookings: "/client/bookings",
   providerHome: "/provider-home",
+  providerSetup: "/provider/setup",
   providerBookings: "/provider/bookings",
   providerAvailability: "/provider/availability",
   adminHome: "/admin-home",
