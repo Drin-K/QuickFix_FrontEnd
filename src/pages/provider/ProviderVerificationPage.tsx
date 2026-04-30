@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
 import {
@@ -10,12 +10,12 @@ import { getProviderVerificationStatus } from "@/services/provider.service";
 
 type DocumentFormState = {
   documentType: string;
-  fileUrl: string;
+  file: File | null;
 };
 
 const emptyDocumentForm: DocumentFormState = {
   documentType: "",
-  fileUrl: "",
+  file: null,
 };
 
 const formatDate = (value: string): string =>
@@ -26,10 +26,19 @@ const formatDate = (value: string): string =>
   }).format(new Date(value));
 
 export const ProviderVerificationPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState<ProviderDocument[]>([]);
   const [formValues, setFormValues] = useState<DocumentFormState>(emptyDocumentForm);
   const [successMessage, setSuccessMessage] = useState("");
 
+  const returnTo =
+    typeof location.state === "object" &&
+    location.state !== null &&
+    "returnTo" in location.state &&
+    typeof location.state.returnTo === "string"
+      ? location.state.returnTo
+      : routePaths.providerSetup;
   const verificationStatus = useMemo(() => getProviderVerificationStatus(), [documents]);
   const pendingDocuments = documents.filter((document) => !document.isVerified).length;
 
@@ -37,10 +46,18 @@ export const ProviderVerificationPage = () => {
     providerDocumentsService.list().then(setDocuments);
   }, []);
 
-  const updateField = (field: keyof DocumentFormState, value: string) => {
+  const updateDocumentType = (value: string) => {
     setFormValues((current) => ({
       ...current,
-      [field]: value,
+      documentType: value,
+    }));
+    setSuccessMessage("");
+  };
+
+  const updateFile = (file: File | null) => {
+    setFormValues((current) => ({
+      ...current,
+      file,
     }));
     setSuccessMessage("");
   };
@@ -48,14 +65,17 @@ export const ProviderVerificationPage = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!formValues.documentType.trim() || !formValues.fileUrl.trim()) {
+    if (!formValues.documentType.trim() || !formValues.file) {
       return;
     }
 
-    const document = await providerDocumentsService.create(formValues);
+    const document = await providerDocumentsService.create({
+      documentType: formValues.documentType,
+      file: formValues.file,
+    });
     setDocuments((current) => [...current, document]);
     setFormValues(emptyDocumentForm);
-    setSuccessMessage("Document added for verification review.");
+    navigate(returnTo, { replace: true });
   };
 
   const handleRemoveDocument = async (documentId: number) => {
@@ -126,17 +146,17 @@ export const ProviderVerificationPage = () => {
                     placeholder="license, national_id, business_registration"
                     required
                     value={formValues.documentType}
-                    onChange={(event) => updateField("documentType", event.target.value)}
+                    onChange={(event) => updateDocumentType(event.target.value)}
                   />
                 </label>
                 <label className="auth-form__field">
-                  <span>File URL</span>
+                  <span>Document file</span>
                   <input
                     className="auth-form__input"
-                    placeholder="https://example.com/document.pdf"
+                    accept=".pdf,.jpg,.jpeg,.png"
                     required
-                    value={formValues.fileUrl}
-                    onChange={(event) => updateField("fileUrl", event.target.value)}
+                    type="file"
+                    onChange={(event) => updateFile(event.target.files?.[0] ?? null)}
                   />
                 </label>
                 <button className="button provider-verification-form__submit" type="submit">
@@ -217,11 +237,9 @@ export const ProviderVerificationPage = () => {
                       ? "Wait for review or update documents if a newer file is available."
                       : "Upload the first verification document to start the review state."}
                 </p>
-                {!verificationStatus.isSetupComplete ? (
-                  <NavLink className="workspace-card-link" to={routePaths.providerSetup}>
-                    Complete provider setup
-                  </NavLink>
-                ) : null}
+                <NavLink className="workspace-card-link" to={returnTo}>
+                  Back to provider setup
+                </NavLink>
               </div>
             </section>
           </div>

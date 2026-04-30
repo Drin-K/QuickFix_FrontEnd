@@ -1,113 +1,93 @@
-import {
-  getProviderSetupDraft,
-  saveProviderSetupDraft,
-  type ProviderDocumentDraft,
-  type ProviderSetupDraft,
-} from "@/services/provider.service";
+import { api } from "@/api/api";
 
-export type ProviderDocument = ProviderDocumentDraft & {
+export type ProviderDocument = {
   id: number;
+  documentType: string;
+  fileUrl: string;
+  isVerified: boolean;
   submittedAt: string;
 };
 
-export type CreateProviderDocumentPayload = {
+export type UploadProviderDocumentPayload = {
   documentType: string;
-  fileUrl: string;
+  file: File;
 };
 
-const PROVIDER_DOCUMENTS_KEY = "providerVerificationDocuments";
-
-const normalizeDocument = (
-  document: ProviderDocumentDraft | ProviderDocument,
-  index: number,
-): ProviderDocument => ({
-  id: "id" in document && typeof document.id === "number" ? document.id : index + 1,
-  documentType: document.documentType,
-  fileUrl: document.fileUrl,
-  isVerified: document.isVerified,
-  submittedAt:
-    "submittedAt" in document && typeof document.submittedAt === "string"
-      ? document.submittedAt
-      : new Date().toISOString(),
-});
-
-const readStoredDocuments = (): ProviderDocument[] => {
-  const rawDocuments = localStorage.getItem(PROVIDER_DOCUMENTS_KEY);
-
-  if (!rawDocuments) {
-    const draftDocuments = getProviderSetupDraft()?.documents ?? [];
-    return draftDocuments.map(normalizeDocument);
-  }
-
-  try {
-    const parsedDocuments = JSON.parse(rawDocuments) as ProviderDocument[];
-
-    if (!Array.isArray(parsedDocuments)) {
-      return [];
-    }
-
-    return parsedDocuments
-      .filter(
-        (document) =>
-          document &&
-          typeof document.documentType === "string" &&
-          typeof document.fileUrl === "string" &&
-          typeof document.isVerified === "boolean",
-      )
-      .map(normalizeDocument);
-  } catch {
-    localStorage.removeItem(PROVIDER_DOCUMENTS_KEY);
-    return [];
-  }
-};
-
-const mergeWithSetupDraft = (documents: ProviderDocument[]) => {
-  const draft = getProviderSetupDraft();
-
-  if (!draft) {
-    return;
-  }
-
-  const updatedDraft: ProviderSetupDraft = {
-    ...draft,
-    documents: documents.map(({ documentType, fileUrl, isVerified }) => ({
-      documentType,
-      fileUrl,
-      isVerified,
-    })),
-    isVerified: documents.length > 0 && documents.every((document) => document.isVerified),
-  };
-
-  saveProviderSetupDraft(updatedDraft);
-};
-
-const writeDocuments = (documents: ProviderDocument[]) => {
-  localStorage.setItem(PROVIDER_DOCUMENTS_KEY, JSON.stringify(documents));
-  mergeWithSetupDraft(documents);
-};
-
-export const providerDocumentsService = {
-  async list(): Promise<ProviderDocument[]> {
-    return readStoredDocuments();
-  },
-
-  async create(payload: CreateProviderDocumentPayload): Promise<ProviderDocument> {
-    const documents = readStoredDocuments();
-    const nextId = documents.reduce((maxId, document) => Math.max(maxId, document.id), 0) + 1;
-    const document: ProviderDocument = {
-      id: nextId,
-      documentType: payload.documentType.trim(),
-      fileUrl: payload.fileUrl.trim(),
-      isVerified: false,
-      submittedAt: new Date().toISOString(),
+type ProviderDocumentApiResponse =
+  | ProviderDocument
+  | {
+      document: ProviderDocument;
     };
 
-    writeDocuments([...documents, document]);
-    return document;
-  },
+type ProviderDocumentsApiResponse =
+  | ProviderDocument[]
+  | {
+      documents: ProviderDocument[];
+    }
+  | {
+      data: ProviderDocument[];
+    };
 
-  async remove(documentId: number): Promise<void> {
-    const documents = readStoredDocuments().filter((document) => document.id !== documentId);
-    writeDocuments(documents);
-  },
+const PROVIDER_DOCUMENTS_ENDPOINT = "/provider-documents";
+
+const normalizeDocumentResponse = (response: ProviderDocumentApiResponse): ProviderDocument => {
+  if ("document" in response) {
+    return response.document;
+  }
+
+  return response;
+};
+
+const normalizeDocumentsResponse = (
+  response: ProviderDocumentsApiResponse,
+): ProviderDocument[] => {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if ("documents" in response && Array.isArray(response.documents)) {
+    return response.documents;
+  }
+
+  if ("data" in response && Array.isArray(response.data)) {
+    return response.data;
+  }
+
+  return [];
+};
+
+export const uploadProviderDocument = async (
+  payload: UploadProviderDocumentPayload,
+): Promise<ProviderDocument> => {
+  const formData = new FormData();
+  formData.append("documentType", payload.documentType.trim());
+  formData.append("file", payload.file);
+
+  const response = await api.post<ProviderDocumentApiResponse>(PROVIDER_DOCUMENTS_ENDPOINT, {
+    body: formData,
+    requireAuth: true,
+  });
+
+  return normalizeDocumentResponse(response);
+};
+
+export const listProviderDocuments = async (): Promise<ProviderDocument[]> => {
+  const response = await api.get<ProviderDocumentsApiResponse>(PROVIDER_DOCUMENTS_ENDPOINT, {
+    requireAuth: true,
+  });
+
+  return normalizeDocumentsResponse(response);
+};
+
+export const deleteProviderDocument = (documentId: number): Promise<void> =>
+  api.delete<void>(`${PROVIDER_DOCUMENTS_ENDPOINT}/${documentId}`, {
+    requireAuth: true,
+  });
+
+export const providerDocumentsService = {
+  list: listProviderDocuments,
+  upload: uploadProviderDocument,
+  create: uploadProviderDocument,
+  remove: deleteProviderDocument,
+  delete: deleteProviderDocument,
 };

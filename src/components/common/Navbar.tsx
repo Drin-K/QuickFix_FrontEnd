@@ -25,9 +25,6 @@ export const Navbar = () => {
         ...(authenticated
           ? [{ label: "Availability", to: routePaths.providerAvailability }]
           : []),
-        ...(authenticated
-          ? [{ label: "Verification", to: routePaths.providerVerification }]
-          : []),
         ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
       ]
     : [
