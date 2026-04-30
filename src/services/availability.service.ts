@@ -1,5 +1,16 @@
 import { api } from "@/api/api";
 
+export type AvailabilitySlotApiItem = {
+  id: number;
+  tenantId: number;
+  providerId: number;
+  startTime: string;
+  endTime: string;
+  isBooked: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AvailabilitySlot = {
   id: number;
   tenantId: number;
@@ -37,3 +48,8 @@ export const availabilityService = {
   },
 };
 
+export const availabilityService = {
+  list: listAvailabilitySlots,
+  create: createAvailabilitySlot,
+  remove: deleteAvailabilitySlot,
+};
