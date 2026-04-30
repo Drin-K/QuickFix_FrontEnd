@@ -28,7 +28,7 @@ type ProviderDocumentsApiResponse =
       data: ProviderDocument[];
     };
 
-const PROVIDER_DOCUMENTS_ENDPOINT = "/provider-documents";
+const PROVIDER_DOCUMENTS_ENDPOINT = "/providers/me/documents";
 
 const normalizeDocumentResponse = (response: ProviderDocumentApiResponse): ProviderDocument => {
   if ("document" in response) {

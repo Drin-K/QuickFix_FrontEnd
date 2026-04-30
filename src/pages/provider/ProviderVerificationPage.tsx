@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
@@ -6,7 +6,10 @@ import {
   providerDocumentsService,
   type ProviderDocument,
 } from "@/services/provider-documents.service";
-import { getProviderVerificationStatus } from "@/services/provider.service";
+import {
+  getProviderVerificationStatus,
+  type ProviderVerificationStatus,
+} from "@/services/provider.service";
 
 type DocumentFormState = {
   documentType: string;
@@ -44,8 +47,16 @@ export const ProviderVerificationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [documents, setDocuments] = useState<ProviderDocument[]>([]);
+  const [verificationStatus, setVerificationStatus] = useState<ProviderVerificationStatus | null>(
+    null,
+  );
   const [formValues, setFormValues] = useState<DocumentFormState>(emptyDocumentForm);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   const returnTo =
     typeof location.state === "object" &&
@@ -54,12 +65,39 @@ export const ProviderVerificationPage = () => {
     typeof location.state.returnTo === "string"
       ? location.state.returnTo
       : routePaths.providerSetup;
-  const verificationStatus = useMemo(() => getProviderVerificationStatus(), [documents]);
   const pendingDocuments = documents.filter((document) => !document.isVerified).length;
+  const statusLabel = verificationStatus?.statusLabel ?? "Under review";
+  const verifiedDocuments =
+    verificationStatus?.verifiedDocuments ??
+    documents.filter((document) => document.isVerified).length;
+  const isVerified = Boolean(verificationStatus?.isVerified);
+  const isSetupComplete = Boolean(verificationStatus?.isSetupComplete);
+
+  const loadVerificationData = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const [documentsResponse, statusResponse] = await Promise.all([
+        providerDocumentsService.list(),
+        getProviderVerificationStatus(),
+      ]);
+      setDocuments(documentsResponse);
+      setVerificationStatus(statusResponse);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Verification data could not be loaded.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    providerDocumentsService.list().then(setDocuments);
-  }, []);
+    loadVerificationData();
+  }, [loadVerificationData]);
 
   const updateDocumentType = (value: string) => {
     setFormValues((current) => ({
@@ -67,6 +105,7 @@ export const ProviderVerificationPage = () => {
       documentType: value,
     }));
     setSuccessMessage("");
+    setErrorMessage("");
   };
 
   const updateFile = (file: File | null) => {
@@ -75,28 +114,56 @@ export const ProviderVerificationPage = () => {
       file,
     }));
     setSuccessMessage("");
+    setErrorMessage("");
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!formValues.documentType.trim() || !formValues.file) {
+      setErrorMessage("Choose a document type and file before uploading.");
       return;
     }
 
-    const document = await providerDocumentsService.create({
-      documentType: formValues.documentType,
-      file: formValues.file,
-    });
-    setDocuments((current) => [...current, document]);
-    setFormValues(emptyDocumentForm);
-    navigate(returnTo, { replace: true });
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const document = await providerDocumentsService.create({
+        documentType: formValues.documentType,
+        file: formValues.file,
+      });
+      setDocuments((current) => [...current, document]);
+      setFormValues(emptyDocumentForm);
+      setFileInputKey((current) => current + 1);
+      setSuccessMessage("Document uploaded for verification review.");
+      await loadVerificationData();
+      window.setTimeout(() => navigate(returnTo, { replace: true }), 900);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Document upload failed.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRemoveDocument = async (documentId: number) => {
-    await providerDocumentsService.remove(documentId);
-    setDocuments((current) => current.filter((document) => document.id !== documentId));
-    setSuccessMessage("Document removed.");
+    setDeletingDocumentId(documentId);
+    setErrorMessage("");
+
+    try {
+      await providerDocumentsService.remove(documentId);
+      setDocuments((current) => current.filter((document) => document.id !== documentId));
+      setSuccessMessage("Document removed.");
+      await loadVerificationData();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Document could not be deleted.",
+      );
+    } finally {
+      setDeletingDocumentId(null);
+    }
   };
 
   return (
@@ -115,15 +182,13 @@ export const ProviderVerificationPage = () => {
 
             <aside className="provider-verification-status">
               <span className="provider-verification-status__label">
-                {verificationStatus.statusLabel}
+                {statusLabel}
               </span>
               <strong>
-                {verificationStatus.isVerified
-                  ? "Your profile is verified."
-                  : "Verification is still pending."}
+                {isVerified ? "Your profile is verified." : "Verification is still pending."}
               </strong>
               <p>
-                {verificationStatus.isSetupComplete
+                {isSetupComplete
                   ? "Provider setup is complete. Documents determine the next verification step."
                   : "Complete provider setup before final verification can be reviewed."}
               </p>
@@ -136,7 +201,7 @@ export const ProviderVerificationPage = () => {
               <span>Documents submitted</span>
             </article>
             <article>
-              <strong>{verificationStatus.verifiedDocuments}</strong>
+              <strong>{verifiedDocuments}</strong>
               <span>Documents verified</span>
             </article>
             <article>
@@ -164,27 +229,48 @@ export const ProviderVerificationPage = () => {
                     onChange={(event) => updateDocumentType(event.target.value)}
                   />
                 </label>
-                <label className="auth-form__field">
+                <label className="auth-form__field provider-verification-file-field">
                   <span>Document file</span>
                   <input
+                    key={fileInputKey}
                     className="auth-form__input"
                     accept=".pdf,.jpg,.jpeg,.png"
                     required
                     type="file"
                     onChange={(event) => updateFile(event.target.files?.[0] ?? null)}
                   />
+                  <span className="provider-verification-file">
+                    <span className="provider-verification-file__button">Choose file</span>
+                    <span className="provider-verification-file__name">
+                      {formValues.file?.name ?? "No file selected"}
+                    </span>
+                  </span>
                 </label>
-                <button className="button provider-verification-form__submit" type="submit">
-                  Add document
+                <button
+                  className="button provider-verification-form__submit"
+                  disabled={isSubmitting}
+                  type="submit"
+                >
+                  {isSubmitting ? "Uploading..." : "Add document"}
                 </button>
               </form>
 
               {successMessage ? (
                 <p className="provider-verification__message">{successMessage}</p>
               ) : null}
+              {errorMessage ? (
+                <p className="provider-verification__message provider-verification__message--error">
+                  {errorMessage}
+                </p>
+              ) : null}
 
               <div className="provider-documents-list" aria-live="polite">
-                {documents.length ? (
+                {isLoading ? (
+                  <div className="provider-documents-empty">
+                    <strong>Loading documents...</strong>
+                    <p>Verification data is being loaded from the backend.</p>
+                  </div>
+                ) : documents.length ? (
                   documents.map((document) => (
                     <article className="provider-document-card" key={document.id}>
                       <div>
@@ -205,10 +291,11 @@ export const ProviderVerificationPage = () => {
                       </div>
                       <button
                         className="button button--ghost"
+                        disabled={deletingDocumentId === document.id}
                         type="button"
                         onClick={() => handleRemoveDocument(document.id)}
                       >
-                        Remove
+                        {deletingDocumentId === document.id ? "Removing..." : "Remove"}
                       </button>
                     </article>
                   ))
@@ -224,7 +311,7 @@ export const ProviderVerificationPage = () => {
             <section className="provider-verification-panel provider-verification-panel--status">
               <div className="provider-verification-panel__header">
                 <span className="eyebrow">Verification status</span>
-                <h2>{verificationStatus.statusLabel}</h2>
+                <h2>{statusLabel}</h2>
                 <p>
                   The status is calculated from provider setup, submitted documents, and the
                   verified flag stored through the provider service.
@@ -232,13 +319,13 @@ export const ProviderVerificationPage = () => {
               </div>
 
               <div className="provider-verification-checklist">
-                <span className={verificationStatus.isSetupComplete ? "is-complete" : undefined}>
+                <span className={isSetupComplete ? "is-complete" : undefined}>
                   Provider setup completed
                 </span>
                 <span className={documents.length > 0 ? "is-complete" : undefined}>
                   Documents submitted
                 </span>
-                <span className={verificationStatus.isVerified ? "is-complete" : undefined}>
+                <span className={isVerified ? "is-complete" : undefined}>
                   Admin verification approved
                 </span>
               </div>
@@ -246,7 +333,7 @@ export const ProviderVerificationPage = () => {
               <div className="provider-verification-next-step">
                 <strong>Next step</strong>
                 <p>
-                  {verificationStatus.isVerified
+                  {isVerified
                     ? "Keep documents current when licenses or company records change."
                     : documents.length > 0
                       ? "Wait for review or update documents if a newer file is available."
