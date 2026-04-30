@@ -117,29 +117,29 @@ export const LoginPage = () => {
       <section className="section auth-page">
         <div className="container auth-page__grid">
           <div className="auth-page__intro">
-            <span className="eyebrow">Login</span>
-            <h1>Sign in and keep your next service request moving.</h1>
+            <span className="eyebrow">Welcome back</span>
+            <h1>Continue your QuickFix bookings.</h1>
             <p>
-              Access your QuickFix account to manage bookings, follow provider responses,
-              and keep every repair request in one place.
+              Sign in to manage requests, track appointments, and keep provider updates in
+              one place.
             </p>
 
             <div className="auth-page__benefits">
               <div className="auth-page__benefit-card">
-                <strong>Track every booking</strong>
-                <span>See statuses, schedules, and service updates without leaving the app.</span>
+                <strong>Bookings</strong>
+                <span>Review active and past service requests.</span>
               </div>
               <div className="auth-page__benefit-card">
-                <strong>Talk to providers faster</strong>
-                <span>Keep communication focused in one thread for each service request.</span>
+                <strong>Providers</strong>
+                <span>Continue with the professionals you selected.</span>
               </div>
             </div>
           </div>
 
           <div className="auth-card">
             <div className="auth-card__header">
-              <h2>Welcome back</h2>
-              <p>Use your email and password to sign in.</p>
+              <h2>Sign in</h2>
+              <p>Enter your account details below.</p>
             </div>
 
             <form className="auth-form" noValidate onSubmit={handleSubmit}>
@@ -178,13 +178,10 @@ export const LoginPage = () => {
                   <input type="checkbox" />
                   <span>Remember me</span>
                 </label>
-                <Link className="auth-form__link" to="/register">
-                  Forgot password?
-                </Link>
               </div>
 
               <button className="button auth-form__submit" disabled={isSubmitting} type="submit">
-                {isSubmitting ? "Signing in..." : "Login"}
+                {isSubmitting ? "Signing in..." : "Sign in"}
               </button>
 
               {submitError ? <p className="auth-form__error">{submitError}</p> : null}

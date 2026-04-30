@@ -2,7 +2,7 @@ import { ApiError } from "@/api/api";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { getProviderBookings, updateBookingStatus } from "@/services/booking.service";
 import type { BookingApiItem, BookingStatus } from "@/types/booking.types";
-import { clearAuthSession, getActiveTenantId } from "@/utils/auth";
+import { clearAuthSession } from "@/utils/auth";
 import { formatDateTime } from "@/utils/format";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -29,8 +29,6 @@ export const ProviderBookingsPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [updatingIds, setUpdatingIds] = useState<Set<number>>(new Set());
 
-  const tenantId = getActiveTenantId();
-
   const sortedBookings = useMemo(() => {
     return [...bookings].sort(
       (a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime(),
@@ -38,14 +36,6 @@ export const ProviderBookingsPage = () => {
   }, [bookings]);
 
   const loadBookings = async () => {
-    if (!tenantId) {
-      setErrorMessage(
-        "Select a tenant-aware link first so we know which tenant to load provider bookings from.",
-      );
-      setIsLoading(false);
-      return;
-    }
-
     try {
       setIsLoading(true);
       setErrorMessage("");

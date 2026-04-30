@@ -12,6 +12,8 @@ import { MyBookingsPage } from "@/pages/client/MyBookingsPage";
 import { ProviderHomePage } from "@/pages/provider/ProviderHomePage";
 import { AvailabilityPage } from "@/pages/provider/AvailabilityPage";
 import { ProviderBookingsPage } from "@/pages/provider/ProviderBookingsPage";
+import { ProviderSetupPage } from "@/pages/provider/ProviderSetupPage";
+import { ProviderVerificationPage } from "@/pages/provider/ProviderVerificationPage";
 import { HomePage } from "@/pages/public/HomePage";
 import { ServicesPage } from "@/pages/public/ServicesPage";
 import { ServiceDetailsPage } from "@/pages/public/ServiceDetailsPage";
@@ -81,11 +83,31 @@ export const AppRouter = () => {
         }
       />
       <Route
+        path={routePaths.providerSetup}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["provider"]}>
+              <ProviderSetupPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path={routePaths.providerBookings}
         element={
           <ProtectedRoute>
             <RoleRoute allowedRoles={["provider"]}>
               <ProviderBookingsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.providerVerification}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["provider"]}>
+              <ProviderVerificationPage />
             </RoleRoute>
           </ProtectedRoute>
         }

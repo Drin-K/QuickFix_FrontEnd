@@ -25,6 +25,9 @@ export const Navbar = () => {
         ...(authenticated
           ? [{ label: "Availability", to: routePaths.providerAvailability }]
           : []),
+        ...(authenticated
+          ? [{ label: "Verification", to: routePaths.providerVerification }]
+          : []),
         ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
       ]
     : [
@@ -32,12 +35,6 @@ export const Navbar = () => {
         { label: "Services", to: routePaths.services },
         ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
         ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
-        ...(!authenticated
-          ? [
-              { label: "Login", to: routePaths.login },
-              { label: "Register", to: routePaths.register },
-            ]
-          : []),
         ...(!isClient && !isProvider && authenticated
           ? [{ label: "Dashboard", to: routePaths.dashboard }]
           : []),
@@ -76,10 +73,10 @@ export const Navbar = () => {
           ) : (
             <>
               <NavLink className="button button--ghost" to={routePaths.register}>
-                Become a provider
+                Sign up
               </NavLink>
               <NavLink className="button" to={routePaths.login}>
-                Book now
+                Log in
               </NavLink>
             </>
           )}

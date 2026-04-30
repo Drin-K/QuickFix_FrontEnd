@@ -11,7 +11,11 @@ export const ProvidersSection = ({ providers }: ProvidersSectionProps) => {
       <div className="container">
         <div className="section-heading">
           <span className="eyebrow">Featured providers</span>
-          <h2>Reliable professionals ready for urgent and scheduled work.</h2>
+          <h2>Reliable professionals visitors can discover before signing in.</h2>
+          <p>
+            Show enough trust signals on the public page to help clients decide, then move
+            protected actions into the logged-in booking experience.
+          </p>
         </div>
 
         <div className="providers-grid">

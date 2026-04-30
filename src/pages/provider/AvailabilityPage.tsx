@@ -1,26 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
+import { ApiError } from "@/api/api";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import {
   availabilityService,
   type AvailabilitySlot,
 } from "@/services/availability.service";
-
-const formatDateTime = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-};
+import { clearAuthSession } from "@/utils/auth";
+import { formatDateTime } from "@/utils/format";
+import { useNavigate } from "react-router-dom";
+import { routePaths } from "@/routes/routePaths";
 
 export const AvailabilityPage = () => {
+  const navigate = useNavigate();
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,6 +37,12 @@ export const AvailabilityPage = () => {
       const results = await availabilityService.list();
       setSlots(results);
     } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearAuthSession();
+        navigate(routePaths.login);
+        return;
+      }
+
       setErrorMessage(error instanceof Error ? error.message : "Failed to load slots.");
     } finally {
       setLoading(false);
@@ -75,6 +72,12 @@ export const AvailabilityPage = () => {
       setEndTime("");
       await loadSlots();
     } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearAuthSession();
+        navigate(routePaths.login);
+        return;
+      }
+
       setErrorMessage(error instanceof Error ? error.message : "Failed to create slot.");
     } finally {
       setSubmitting(false);
@@ -87,6 +90,12 @@ export const AvailabilityPage = () => {
       await availabilityService.remove(slotId);
       await loadSlots();
     } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearAuthSession();
+        navigate(routePaths.login);
+        return;
+      }
+
       setErrorMessage(error instanceof Error ? error.message : "Failed to delete slot.");
     }
   };

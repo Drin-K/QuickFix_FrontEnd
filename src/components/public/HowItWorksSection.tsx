@@ -1,15 +1,15 @@
 const steps = [
   {
-    title: "Search and filter",
-    description: "Find providers by service type, city, budget and availability.",
+    title: "Explore services",
+    description: "Start from the public page and check the categories that match your repair.",
   },
   {
-    title: "Compare and book",
-    description: "Review profiles, ratings and pricing before sending a booking request.",
+    title: "Log in to request",
+    description: "Create an account or sign in when you are ready to send a booking request.",
   },
   {
-    title: "Track and review",
-    description: "Chat with the provider, manage the appointment and leave feedback after.",
+    title: "Manage the job",
+    description: "Track your booking, coordinate with the provider, and review the work after.",
   },
 ];
 
@@ -19,7 +19,7 @@ export const HowItWorksSection = () => {
       <div className="container">
         <div className="section-heading">
           <span className="eyebrow">How it works</span>
-          <h2>A simple service flow for both clients and providers.</h2>
+          <h2>A clear path from public browsing to confirmed booking.</h2>
         </div>
 
         <div className="steps-grid">
