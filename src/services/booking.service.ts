@@ -13,13 +13,13 @@ export const getMyBookings = (): Promise<BookingApiItem[]> =>
   api.get<BookingApiItem[]>("/bookings/my", { requireAuth: true });
 
 export const getProviderBookings = (): Promise<BookingApiItem[]> =>
-  api.get<BookingApiItem[]>("/bookings/provider", { requireAuth: true });
+  api.get<BookingApiItem[]>("/provider/bookings", { requireAuth: true });
 
 export const updateBookingStatus = (
   bookingId: number,
   status: BookingStatus,
 ): Promise<BookingApiItem> =>
-  api.patch<BookingApiItem>(`/bookings/${bookingId}/status`, {
+  api.patch<BookingApiItem>(`/provider/bookings/${bookingId}/status`, {
     body: { status },
     requireAuth: true,
   });
