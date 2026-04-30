@@ -1,4 +1,4 @@
-import { getAuthUser } from "@/utils/auth";
+import { api } from "@/api/api";
 
 export type AvailabilitySlot = {
   id: number;
@@ -12,89 +12,28 @@ export type CreateAvailabilitySlotPayload = {
   endTime: string;
 };
 
-const STORAGE_PREFIX = "quickfix_availability_slots";
+const PROVIDER_AVAILABILITY_ENDPOINT = "/provider/availability";
 
-const getStorageKey = (providerUserId: number) => `${STORAGE_PREFIX}:${providerUserId}`;
+export const listAvailabilitySlots = (): Promise<AvailabilitySlot[]> =>
+  api.get<AvailabilitySlot[]>(PROVIDER_AVAILABILITY_ENDPOINT, {
+    requireAuth: true,
+  });
 
-const readSlots = (providerUserId: number): AvailabilitySlot[] => {
-  const raw = localStorage.getItem(getStorageKey(providerUserId));
-  if (!raw) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as AvailabilitySlot[];
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter(
-      (slot) =>
-        slot &&
-        typeof slot.id === "number" &&
-        typeof slot.startTime === "string" &&
-        typeof slot.endTime === "string" &&
-        typeof slot.isBooked === "boolean",
-    );
-  } catch {
-    localStorage.removeItem(getStorageKey(providerUserId));
-    return [];
-  }
-};
-
-const writeSlots = (providerUserId: number, slots: AvailabilitySlot[]) => {
-  localStorage.setItem(getStorageKey(providerUserId), JSON.stringify(slots));
-};
-
-const requireProviderUserId = (): number => {
-  const user = getAuthUser();
-  if (!user) {
-    throw new Error("Authentication is required.");
-  }
-
-  if (user.role !== "provider") {
-    throw new Error("Only providers can manage availability slots.");
-  }
-
-  return user.id;
-};
-
-export const listAvailabilitySlots = async (): Promise<AvailabilitySlot[]> => {
-  const providerUserId = requireProviderUserId();
-  const slots = readSlots(providerUserId);
-
-  return slots.sort(
-    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-  );
-};
-
-export const createAvailabilitySlot = async (
+export const createAvailabilitySlot = (
   payload: CreateAvailabilitySlotPayload,
-): Promise<AvailabilitySlot> => {
-  const providerUserId = requireProviderUserId();
-  const slots = readSlots(providerUserId);
-  const nextId = slots.reduce((maxId, slot) => Math.max(maxId, slot.id), 0) + 1;
+): Promise<AvailabilitySlot> =>
+  api.post<AvailabilitySlot>(PROVIDER_AVAILABILITY_ENDPOINT, {
+    body: payload,
+    requireAuth: true,
+  });
 
-  const newSlot: AvailabilitySlot = {
-    id: nextId,
-    startTime: payload.startTime,
-    endTime: payload.endTime,
-    isBooked: false,
-  };
-
-  writeSlots(providerUserId, [...slots, newSlot]);
-  return newSlot;
-};
-
-export const deleteAvailabilitySlot = async (slotId: number): Promise<void> => {
-  const providerUserId = requireProviderUserId();
-  const slots = readSlots(providerUserId);
-  const filtered = slots.filter((slot) => slot.id !== slotId);
-  writeSlots(providerUserId, filtered);
-};
+export const deleteAvailabilitySlot = (slotId: number): Promise<void> =>
+  api.delete<void>(`${PROVIDER_AVAILABILITY_ENDPOINT}/${slotId}`, {
+    requireAuth: true,
+  });
 
 export const availabilityService = {
   list: listAvailabilitySlots,
   create: createAvailabilitySlot,
   remove: deleteAvailabilitySlot,
 };
-
