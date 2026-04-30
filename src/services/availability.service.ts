@@ -47,9 +47,3 @@ export const availabilityService = {
     });
   },
 };
-
-export const availabilityService = {
-  list: listAvailabilitySlots,
-  create: createAvailabilitySlot,
-  remove: deleteAvailabilitySlot,
-};

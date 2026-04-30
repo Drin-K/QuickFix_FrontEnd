@@ -298,7 +298,7 @@ export const ProfilePage = () => {
                 </article>
                 <article>
                   <span>Tenant</span>
-                  <strong>{user.tenantId ? `#${user.tenantId}` : "—"}</strong>
+                  <strong>{user.tenantId ? `#${user.tenantId}` : "-"}</strong>
                 </article>
                 <article>
                   <span>Workspace</span>
@@ -445,8 +445,12 @@ export const ProfilePage = () => {
                           >
                             Cancel
                           </button>
-                          <button className="button" type="submit">
-                            Save changes
+                          <button
+                            className="button"
+                            disabled={!PROFILE_UPDATES_ENABLED}
+                            type="submit"
+                          >
+                            {PROFILE_UPDATES_ENABLED ? "Save changes" : "Save unavailable"}
                           </button>
                         </>
                       ) : (
@@ -566,9 +570,17 @@ export const ProfilePage = () => {
                     </NavLink>
                   ) : null}
                   {user.role === "provider" ? (
-                    <NavLink className="button button--ghost" to={routePaths.providerAvailability}>
-                      Manage availability
-                    </NavLink>
+                    <>
+                      <NavLink className="button button--ghost" to={routePaths.providerBookings}>
+                        View bookings
+                      </NavLink>
+                      <NavLink
+                        className="button button--ghost"
+                        to={routePaths.providerAvailability}
+                      >
+                        Manage availability
+                      </NavLink>
+                    </>
                   ) : null}
                   <button className="button button--ghost" type="button" onClick={handleLogout}>
                     Logout
@@ -587,7 +599,11 @@ export const ProfilePage = () => {
                 <div className="profile-health-list">
                   <article>
                     <strong>{user.phone ? "Complete" : "Needs attention"}</strong>
-                    <span>{user.phone ? "Contact phone is available." : "Add a phone number when API updates are supported."}</span>
+                    <span>
+                      {user.phone
+                        ? "Contact phone is available."
+                        : "Add a phone number when API updates are supported."}
+                    </span>
                   </article>
                   <article>
                     <strong>{isProvider ? (providerVerified ? "Verified" : "Pending") : "Ready"}</strong>
