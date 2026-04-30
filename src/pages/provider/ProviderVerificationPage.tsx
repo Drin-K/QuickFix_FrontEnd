@@ -25,6 +25,21 @@ const formatDate = (value: string): string =>
     year: "numeric",
   }).format(new Date(value));
 
+const getFileName = (fileUrl: string): string => {
+  try {
+    const pathname = fileUrl.startsWith("http")
+      ? new URL(fileUrl).pathname
+      : fileUrl;
+    const fileName = pathname.split("/").filter(Boolean).at(-1);
+
+    return fileName ? decodeURIComponent(fileName) : fileUrl;
+  } catch {
+    const fileName = fileUrl.split("/").filter(Boolean).at(-1);
+
+    return fileName ?? fileUrl;
+  }
+};
+
 export const ProviderVerificationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -184,7 +199,7 @@ export const ProviderVerificationPage = () => {
                         </span>
                         <h3>{document.documentType}</h3>
                         <a href={document.fileUrl} target="_blank" rel="noreferrer">
-                          {document.fileUrl}
+                          {getFileName(document.fileUrl)}
                         </a>
                         <p>Submitted {formatDate(document.submittedAt)}</p>
                       </div>
