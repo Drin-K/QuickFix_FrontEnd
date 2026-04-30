@@ -24,10 +24,10 @@ const providerActions = [
     to: routePaths.providerAvailability,
   },
   {
-    title: "Verification",
-    description: "Manage verification documents and track the current profile review status.",
-    label: "Open verification",
-    to: routePaths.providerVerification,
+    title: "Update profile",
+    description: "Review your account information and keep contact details current.",
+    label: "Open profile",
+    to: routePaths.profile,
   },
 ];
 
@@ -36,7 +36,6 @@ export const ProviderHomePage = () => {
   const displayName = user?.fullName || "Provider";
   const setupDraft = getProviderSetupDraft();
   const setupComplete = Boolean(setupDraft?.isSetupComplete);
-  const isVerified = Boolean(setupDraft?.isVerified);
 
   return (
     <ProviderHomeLayout>
@@ -57,9 +56,6 @@ export const ProviderHomePage = () => {
                 </NavLink>
                 <NavLink className="button button--ghost" to={routePaths.providerAvailability}>
                   Set availability
-                </NavLink>
-                <NavLink className="button button--ghost" to={routePaths.providerVerification}>
-                  Verification
                 </NavLink>
               </div>
             </div>
@@ -115,23 +111,6 @@ export const ProviderHomePage = () => {
                 </NavLink>
               </article>
             ))}
-          </div>
-
-          <div className="workspace-panel workspace-panel--provider">
-            <div>
-              <span className="eyebrow">Verification status</span>
-              <h2>{isVerified ? "Your provider profile is verified." : "Your provider profile is not verified yet."}</h2>
-              <p>
-                {isVerified
-                  ? "Verified profiles can build stronger trust with clients."
-                  : "Open the verification page to manage documents and track review readiness."}
-              </p>
-            </div>
-            <div className="workspace-check-list">
-              <span>{setupComplete ? "Setup completed" : "Setup missing"}</span>
-              <span>{isVerified ? "Verified" : "Verification pending"}</span>
-              <span>{setupDraft?.documents.length ? "Documents drafted" : "Documents not added"}</span>
-            </div>
           </div>
         </div>
       </section>

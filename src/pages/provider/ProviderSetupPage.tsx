@@ -27,8 +27,6 @@ type SetupFormState = {
   businessName: string;
   businessNumber: string;
   website: string;
-  documentType: string;
-  fileUrl: string;
 };
 
 const providerOptions: ProviderOption[] = [
@@ -57,8 +55,6 @@ const emptyFormState: SetupFormState = {
   businessName: "",
   businessNumber: "",
   website: "",
-  documentType: "",
-  fileUrl: "",
 };
 
 const getInitialFormState = (draft: ProviderSetupDraft | null): SetupFormState => ({
@@ -73,8 +69,6 @@ const getInitialFormState = (draft: ProviderSetupDraft | null): SetupFormState =
   businessName: draft?.companyDetails?.businessName ?? "",
   businessNumber: draft?.companyDetails?.businessNumber ?? "",
   website: draft?.companyDetails?.website ?? "",
-  documentType: draft?.documents[0]?.documentType ?? "",
-  fileUrl: draft?.documents[0]?.fileUrl ?? "",
 });
 
 export const ProviderSetupPage = () => {
@@ -123,18 +117,9 @@ export const ProviderSetupPage = () => {
               website: formValues.website.trim(),
             }
           : undefined,
-      documents:
-        formValues.documentType.trim() || formValues.fileUrl.trim()
-          ? [
-              {
-                documentType: formValues.documentType.trim(),
-                fileUrl: formValues.fileUrl.trim(),
-                isVerified: false,
-              },
-            ]
-          : [],
+      documents: getProviderSetupDraft()?.documents ?? [],
       isSetupComplete: true,
-      isVerified: false,
+      isVerified: Boolean(getProviderSetupDraft()?.isVerified),
     };
 
     saveProviderSetupDraft(draft);
@@ -328,30 +313,19 @@ export const ProviderSetupPage = () => {
                 <span className="eyebrow">Verification documents</span>
                 <h2>Prepare documents for the next verification step.</h2>
                 <p>
-                  Upload and verification will be wired later. For now this keeps the frontend
-                  shape aligned with provider_documents.
+                  Open the verification documents page from here, submit your documents, and
+                  you will return to setup after submission.
                 </p>
               </div>
 
-              <div className="provider-setup-details__grid">
-                <label className="auth-form__field">
-                  <span>Document type</span>
-                  <input
-                    className="auth-form__input"
-                    value={formValues.documentType}
-                    onChange={(event) => updateField("documentType", event.target.value)}
-                    placeholder={isCompany ? "business_registration" : "license"}
-                  />
-                </label>
-                <label className="auth-form__field provider-setup-details__wide">
-                  <span>File URL</span>
-                  <input
-                    className="auth-form__input"
-                    value={formValues.fileUrl}
-                    onChange={(event) => updateField("fileUrl", event.target.value)}
-                    placeholder="Document URL placeholder"
-                  />
-                </label>
+              <div className="provider-setup-section__actions">
+                <NavLink
+                  className="button button--ghost"
+                  state={{ returnTo: routePaths.providerSetup }}
+                  to={routePaths.providerVerification}
+                >
+                  Open verification documents
+                </NavLink>
               </div>
             </section>
 
@@ -360,8 +334,8 @@ export const ProviderSetupPage = () => {
                 <span>Setup saved</span>
                 <strong>Your provider profile is ready, but not verified yet.</strong>
                 <p>
-                  The verification flow will be added later. Until then, your profile details
-                  stay prepared for backend integration.
+                  Your setup details are saved. Use the verification documents button above
+                  when you need to add or update review files.
                 </p>
               </div>
             ) : null}
