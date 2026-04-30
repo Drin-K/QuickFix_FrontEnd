@@ -1,3 +1,5 @@
+import { api } from "@/api/api";
+
 export type ProviderProfileType = "individual" | "company";
 
 export type ProviderDocumentDraft = {
@@ -39,6 +41,15 @@ export type ProviderVerificationStatus = {
   statusLabel: "Setup required" | "Documents required" | "Under review" | "Verified";
 };
 
+type ProviderVerificationStatusApiResponse =
+  | ProviderVerificationStatus
+  | {
+      verificationStatus: ProviderVerificationStatus;
+    }
+  | {
+      data: ProviderVerificationStatus;
+    };
+
 const PROVIDER_SETUP_DRAFT_KEY = "providerSetupDraft";
 
 export const getProviderSetupDraft = (): ProviderSetupDraft | null => {
@@ -64,7 +75,7 @@ export const hasCompletedProviderSetup = (): boolean => {
   return Boolean(getProviderSetupDraft()?.isSetupComplete);
 };
 
-export const getProviderVerificationStatus = (): ProviderVerificationStatus => {
+export const getLocalProviderVerificationStatus = (): ProviderVerificationStatus => {
   const draft = getProviderSetupDraft();
   const documents = draft?.documents ?? [];
   const submittedDocuments = documents.length;
@@ -91,4 +102,29 @@ export const getProviderVerificationStatus = (): ProviderVerificationStatus => {
     verifiedDocuments,
     statusLabel,
   };
+};
+
+const normalizeVerificationStatusResponse = (
+  response: ProviderVerificationStatusApiResponse,
+): ProviderVerificationStatus => {
+  if ("verificationStatus" in response) {
+    return response.verificationStatus;
+  }
+
+  if ("data" in response) {
+    return response.data;
+  }
+
+  return response;
+};
+
+export const getProviderVerificationStatus = async (): Promise<ProviderVerificationStatus> => {
+  const response = await api.get<ProviderVerificationStatusApiResponse>(
+    "/providers/me/verification-status",
+    {
+      requireAuth: true,
+    },
+  );
+
+  return normalizeVerificationStatusResponse(response);
 };
