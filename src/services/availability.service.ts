@@ -58,37 +58,43 @@ const requireProviderUserId = (): number => {
   return user.id;
 };
 
+export const listAvailabilitySlots = async (): Promise<AvailabilitySlot[]> => {
+  const providerUserId = requireProviderUserId();
+  const slots = readSlots(providerUserId);
+
+  return slots.sort(
+    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+  );
+};
+
+export const createAvailabilitySlot = async (
+  payload: CreateAvailabilitySlotPayload,
+): Promise<AvailabilitySlot> => {
+  const providerUserId = requireProviderUserId();
+  const slots = readSlots(providerUserId);
+  const nextId = slots.reduce((maxId, slot) => Math.max(maxId, slot.id), 0) + 1;
+
+  const newSlot: AvailabilitySlot = {
+    id: nextId,
+    startTime: payload.startTime,
+    endTime: payload.endTime,
+    isBooked: false,
+  };
+
+  writeSlots(providerUserId, [...slots, newSlot]);
+  return newSlot;
+};
+
+export const deleteAvailabilitySlot = async (slotId: number): Promise<void> => {
+  const providerUserId = requireProviderUserId();
+  const slots = readSlots(providerUserId);
+  const filtered = slots.filter((slot) => slot.id !== slotId);
+  writeSlots(providerUserId, filtered);
+};
+
 export const availabilityService = {
-  async list(): Promise<AvailabilitySlot[]> {
-    const providerUserId = requireProviderUserId();
-    const slots = readSlots(providerUserId);
-
-    return slots.sort(
-      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-    );
-  },
-
-  async create(payload: CreateAvailabilitySlotPayload): Promise<AvailabilitySlot> {
-    const providerUserId = requireProviderUserId();
-    const slots = readSlots(providerUserId);
-    const nextId = slots.reduce((maxId, slot) => Math.max(maxId, slot.id), 0) + 1;
-
-    const newSlot: AvailabilitySlot = {
-      id: nextId,
-      startTime: payload.startTime,
-      endTime: payload.endTime,
-      isBooked: false,
-    };
-
-    writeSlots(providerUserId, [...slots, newSlot]);
-    return newSlot;
-  },
-
-  async remove(slotId: number): Promise<void> {
-    const providerUserId = requireProviderUserId();
-    const slots = readSlots(providerUserId);
-    const filtered = slots.filter((slot) => slot.id !== slotId);
-    writeSlots(providerUserId, filtered);
-  },
+  list: listAvailabilitySlots,
+  create: createAvailabilitySlot,
+  remove: deleteAvailabilitySlot,
 };
 
