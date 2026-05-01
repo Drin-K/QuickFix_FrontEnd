@@ -20,8 +20,13 @@ export const Navbar = () => {
   const navigationItems = isProvider
     ? [
         { label: "Home", to: homeRoute },
-        { label: "Services", to: routePaths.services },
-        ...(authenticated ? [{ label: "Bookings", to: routePaths.providerBookings }] : []),
+        { label: "Marketplace", to: routePaths.services },
+        ...(authenticated
+          ? [{ label: "My Services", to: routePaths.providerServices }]
+          : []),
+        ...(authenticated
+          ? [{ label: "Bookings", to: routePaths.providerBookings }]
+          : []),
         ...(authenticated
           ? [{ label: "Availability", to: routePaths.providerAvailability }]
           : []),

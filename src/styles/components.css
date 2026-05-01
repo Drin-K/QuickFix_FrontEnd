@@ -138,7 +138,11 @@
 }
 
 .section--tinted {
-  background: linear-gradient(180deg, rgba(45, 212, 191, 0.09), rgba(255, 255, 255, 0.86));
+  background: linear-gradient(
+    180deg,
+    rgba(45, 212, 191, 0.09),
+    rgba(255, 255, 255, 0.86)
+  );
 }
 
 .section--compact {
@@ -1379,6 +1383,162 @@
   margin-bottom: 0.25rem;
 }
 
+.my-services-page {
+  padding-top: 3rem;
+}
+
+.my-services-hero,
+.my-services-form-card,
+.my-service-card,
+.my-services-empty {
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.my-services-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.45fr);
+  gap: 1.5rem;
+  align-items: center;
+  padding: 2rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(239, 250, 255, 0.9)),
+    var(--color-surface);
+}
+
+.my-services-hero h1 {
+  max-width: 15ch;
+  margin: 0;
+  font-size: clamp(2.35rem, 5vw, 4rem);
+  line-height: 1.04;
+}
+
+.my-services-hero p,
+.my-services-list__heading p,
+.my-service-card p,
+.my-service-card__meta span,
+.my-services-empty p {
+  color: var(--color-muted);
+}
+
+.my-services-hero__stats {
+  display: grid;
+  gap: 1rem;
+}
+
+.my-services-hero__stats article {
+  padding: 1.15rem;
+  border: 1px solid rgba(16, 169, 155, 0.16);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.my-services-hero__stats strong {
+  display: block;
+  font-size: 1.75rem;
+}
+
+.my-services-hero__stats span {
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.my-services-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.42fr) minmax(0, 0.58fr);
+  gap: 1.25rem;
+  align-items: start;
+  margin-top: 1.25rem;
+}
+
+.my-services-form-card {
+  order: initial;
+}
+
+.my-services-form-card__textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.my-services-form-card__actions,
+.my-service-card__actions,
+.my-service-card__header,
+.my-service-card__meta {
+  display: flex;
+  gap: 0.85rem;
+}
+
+.my-services-form-card__actions {
+  flex-wrap: wrap;
+}
+
+.my-services-list__heading {
+  margin-bottom: 1rem;
+}
+
+.my-services-cards {
+  display: grid;
+  gap: 1rem;
+}
+
+.my-service-card,
+.my-services-empty {
+  padding: 1.35rem;
+}
+
+.my-service-card__header,
+.my-service-card__meta {
+  justify-content: space-between;
+}
+
+.my-service-card__header {
+  align-items: flex-start;
+}
+
+.my-service-card__header h3 {
+  margin: 0;
+}
+
+.my-service-card__status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.my-service-card__status--active {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.my-service-card__status--inactive {
+  background: rgba(255, 184, 0, 0.14);
+  color: #9a6700;
+}
+
+.my-service-card__meta {
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.my-service-card__actions {
+  flex-wrap: wrap;
+  margin-top: 1.1rem;
+}
+
+.my-service-card__actions .button {
+  padding: 0.75rem 1rem;
+}
+
+.my-services-empty h3 {
+  margin-top: 0;
+}
+
 @media (max-width: 960px) {
   .navbar__inner,
   .navbar__actions,
@@ -1411,7 +1571,9 @@
   .provider-verification-form,
   .services-page__summary,
   .service-details__hero,
-  .service-details__content {
+  .service-details__content,
+  .my-services-hero,
+  .my-services-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1476,7 +1638,8 @@
   }
 
   .provider-setup__hero h1,
-  .provider-verification__hero h1 {
+  .provider-verification__hero h1,
+  .my-services-hero h1 {
     max-width: none;
   }
 

@@ -12,6 +12,7 @@ import { MyBookingsPage } from "@/pages/client/MyBookingsPage";
 import { ProviderHomePage } from "@/pages/provider/ProviderHomePage";
 import { AvailabilityPage } from "@/pages/provider/AvailabilityPage";
 import { ProviderBookingsPage } from "@/pages/provider/ProviderBookingsPage";
+import { MyServicesPage } from "@/pages/provider/MyServicesPage";
 import { ProviderSetupPage } from "@/pages/provider/ProviderSetupPage";
 import { ProviderVerificationPage } from "@/pages/provider/ProviderVerificationPage";
 import { HomePage } from "@/pages/public/HomePage";
@@ -88,6 +89,16 @@ export const AppRouter = () => {
           <ProtectedRoute>
             <RoleRoute allowedRoles={["provider"]}>
               <ProviderSetupPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.providerServices}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["provider"]}>
+              <MyServicesPage />
             </RoleRoute>
           </ProtectedRoute>
         }
