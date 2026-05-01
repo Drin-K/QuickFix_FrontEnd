@@ -76,3 +76,12 @@ export type ServiceApiDetails = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type ServiceMutationPayload = {
+  title: string;
+  description: string | null;
+  basePrice: string;
+  categoryId: number | null;
+  isActive: boolean;
+  coverImageUrl?: string | null;
+};

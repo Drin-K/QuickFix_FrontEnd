@@ -4,7 +4,9 @@ import type {
   ProviderHighlight,
   ServiceApiCategory,
   ServiceApiDetails,
+  ServiceApiListItem,
   ServiceCategory,
+  ServiceMutationPayload,
   ServicesApiListResponse,
   Statistic,
 } from "@/types/service.types";
@@ -61,7 +63,11 @@ const serviceDetails: ServiceDetail[] = [
     availability: "Available today",
     location: "Prishtine",
     responseTime: "Usually replies in under 15 minutes",
-    highlights: ["Fault diagnostics", "Lighting installation", "Socket and switch repairs"],
+    highlights: [
+      "Fault diagnostics",
+      "Lighting installation",
+      "Socket and switch repairs",
+    ],
   },
   {
     id: "plumbing",
@@ -138,6 +144,64 @@ export const getServiceById = (
     tenantId,
   });
 
+const normalizeServicesResponse = (
+  response:
+    | ServicesApiListResponse
+    | { data: ServicesApiListResponse["services"] }
+    | ServicesApiListResponse["services"],
+): ServicesApiListResponse["services"] => {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if ("services" in response && Array.isArray(response.services)) {
+    return response.services;
+  }
+
+  if ("data" in response && Array.isArray(response.data)) {
+    return response.data;
+  }
+
+  return [];
+};
+
+export const serviceService = {
+  async getMyServices(): Promise<ServicesApiListResponse["services"]> {
+    const response = await api.get<
+      | ServicesApiListResponse
+      | { data: ServicesApiListResponse["services"] }
+      | ServicesApiListResponse["services"]
+    >("/provider/services", {
+      requireAuth: true,
+    });
+
+    return normalizeServicesResponse(response);
+  },
+
+  create(payload: ServiceMutationPayload): Promise<ServiceApiListItem> {
+    return api.post<ServiceApiListItem>("/provider/services", {
+      body: payload,
+      requireAuth: true,
+    });
+  },
+
+  update(
+    serviceId: number,
+    payload: ServiceMutationPayload,
+  ): Promise<ServiceApiListItem> {
+    return api.patch<ServiceApiListItem>(`/provider/services/${serviceId}`, {
+      body: payload,
+      requireAuth: true,
+    });
+  },
+
+  remove(serviceId: number): Promise<void> {
+    return api.delete<void>(`/provider/services/${serviceId}`, {
+      requireAuth: true,
+    });
+  },
+};
+
 export const homeService = {
   getServiceCategories(): ServiceCategory[] {
     return serviceCategories;
@@ -153,9 +217,24 @@ export const homeService = {
 
   getFeaturedProviders(): ProviderHighlight[] {
     return [
-      { name: "Arber Kola", specialty: "Certified Electrician", rating: 4.9, city: "Prishtine" },
-      { name: "Nora Plumbing Co.", specialty: "Emergency Plumbing", rating: 4.8, city: "Prizren" },
-      { name: "Mira Home Services", specialty: "Maintenance & Repairs", rating: 5, city: "Ferizaj" },
+      {
+        name: "Arber Kola",
+        specialty: "Certified Electrician",
+        rating: 4.9,
+        city: "Prishtine",
+      },
+      {
+        name: "Nora Plumbing Co.",
+        specialty: "Emergency Plumbing",
+        rating: 4.8,
+        city: "Prizren",
+      },
+      {
+        name: "Mira Home Services",
+        specialty: "Maintenance & Repairs",
+        rating: 5,
+        city: "Ferizaj",
+      },
     ];
   },
 
