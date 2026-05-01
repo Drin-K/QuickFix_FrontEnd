@@ -1,12 +1,16 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
 import {
+  getProviderProfile,
   getProviderSetupDraft,
   saveProviderSetupDraft,
+  setupProvider,
   type ProviderProfileType,
+  type ProviderProfileResponse,
   type ProviderSetupDraft,
+  type ProviderSetupPayload,
 } from "@/services/provider.service";
 
 type ProviderOption = {
@@ -34,7 +38,8 @@ const providerOptions: ProviderOption[] = [
     type: "individual",
     eyebrow: "Individual",
     title: "Independent professional",
-    description: "For masters, technicians, and specialists who work under their own name.",
+    description:
+      "For masters, technicians, and specialists who work under their own name.",
   },
   {
     type: "company",
@@ -71,6 +76,35 @@ const getInitialFormState = (draft: ProviderSetupDraft | null): SetupFormState =
   website: draft?.companyDetails?.website ?? "",
 });
 
+const getFormStateFromProfile = (profile: ProviderProfileResponse): SetupFormState => ({
+  ...emptyFormState,
+  displayName: profile.provider.displayName,
+  description: profile.provider.description ?? "",
+  cityId: profile.provider.cityId ? String(profile.provider.cityId) : "",
+  address: profile.provider.address ?? "",
+  professionTitle: profile.individualDetails?.professionTitle ?? "",
+  yearsOfExperience:
+    profile.individualDetails?.yearsOfExperience !== null &&
+    profile.individualDetails?.yearsOfExperience !== undefined
+      ? String(profile.individualDetails.yearsOfExperience)
+      : "",
+  bio: profile.individualDetails?.bio ?? "",
+  businessName: profile.companyDetails?.businessName ?? "",
+  businessNumber: profile.companyDetails?.businessNumber ?? "",
+  website: profile.companyDetails?.website ?? "",
+});
+
+const parseOptionalNumber = (value: string): number | undefined => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return undefined;
+  }
+
+  const parsedValue = Number(trimmedValue);
+  return Number.isNaN(parsedValue) ? undefined : parsedValue;
+};
+
 export const ProviderSetupPage = () => {
   const existingDraft = useMemo(() => getProviderSetupDraft(), []);
   const [selectedType, setSelectedType] = useState<ProviderProfileType>(
@@ -79,10 +113,50 @@ export const ProviderSetupPage = () => {
   const [formValues, setFormValues] = useState<SetupFormState>(() =>
     getInitialFormState(existingDraft),
   );
-  const [showSavedState, setShowSavedState] = useState(Boolean(existingDraft?.isSetupComplete));
+  const [showSavedState, setShowSavedState] = useState(
+    Boolean(existingDraft?.isSetupComplete),
+  );
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const selectedOption = providerOptions.find((option) => option.type === selectedType);
   const isCompany = selectedType === "company";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProviderProfile = async () => {
+      setIsLoadingProfile(true);
+
+      try {
+        const profile = await getProviderProfile();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setSelectedType(profile.provider.type);
+        setFormValues(getFormStateFromProfile(profile));
+        setShowSavedState(Boolean(profile.individualDetails || profile.companyDetails));
+      } catch {
+        if (isMounted && existingDraft?.isSetupComplete) {
+          setShowSavedState(true);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingProfile(false);
+        }
+      }
+    };
+
+    void loadProviderProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [existingDraft]);
 
   const updateField = (field: keyof SetupFormState, value: string) => {
     setFormValues((current) => ({
@@ -90,10 +164,42 @@ export const ProviderSetupPage = () => {
       [field]: value,
     }));
     setShowSavedState(false);
+    setFeedbackMessage("");
+    setErrorMessage("");
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsSubmitting(true);
+    setFeedbackMessage("");
+    setErrorMessage("");
+
+    const cityId = parseOptionalNumber(formValues.cityId);
+    const yearsOfExperience = parseOptionalNumber(formValues.yearsOfExperience);
+
+    const payload: ProviderSetupPayload = {
+      type: selectedType,
+      displayName: formValues.displayName.trim(),
+      description: formValues.description.trim() || undefined,
+      cityId,
+      address: formValues.address.trim() || undefined,
+      individualDetails:
+        selectedType === "individual"
+          ? {
+              professionTitle: formValues.professionTitle.trim(),
+              yearsOfExperience,
+              bio: formValues.bio.trim() || undefined,
+            }
+          : undefined,
+      companyDetails:
+        selectedType === "company"
+          ? {
+              businessName: formValues.businessName.trim(),
+              businessNumber: formValues.businessNumber.trim() || undefined,
+              website: formValues.website.trim() || undefined,
+            }
+          : undefined,
+    };
 
     const draft: ProviderSetupDraft = {
       type: selectedType,
@@ -122,8 +228,22 @@ export const ProviderSetupPage = () => {
       isVerified: Boolean(getProviderSetupDraft()?.isVerified),
     };
 
-    saveProviderSetupDraft(draft);
-    setShowSavedState(true);
+    try {
+      const response = await setupProvider(payload);
+
+      saveProviderSetupDraft({
+        ...draft,
+        isVerified: response.provider.isVerified,
+      });
+      setShowSavedState(true);
+      setFeedbackMessage(response.message ?? "Provider setup saved successfully.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Provider setup could not be saved.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -135,14 +255,20 @@ export const ProviderSetupPage = () => {
               <span className="eyebrow">Provider setup</span>
               <h1>Prepare your profile before verification.</h1>
               <p>
-                Select whether you operate as an individual or company, then add the details
-                that map to the provider profile, detail tables, and verification documents.
+                Select whether you operate as an individual or company, then add the
+                details that map to the provider profile, detail tables, and verification
+                documents.
               </p>
             </div>
-            <div className="provider-setup__progress" aria-label="Provider setup progress">
+            <div
+              className="provider-setup__progress"
+              aria-label="Provider setup progress"
+            >
               <span className="is-active">1. Profile type</span>
               <span className="is-active">2. Provider details</span>
-              <span className={showSavedState ? "is-active" : undefined}>3. Verification pending</span>
+              <span className={showSavedState ? "is-active" : undefined}>
+                3. Verification pending
+              </span>
             </div>
           </div>
 
@@ -153,7 +279,11 @@ export const ProviderSetupPage = () => {
                 <h2>How do you provide services?</h2>
               </div>
 
-              <div className="provider-setup__options" role="radiogroup" aria-label="Provider type">
+              <div
+                className="provider-setup__options"
+                role="radiogroup"
+                aria-label="Provider type"
+              >
                 {providerOptions.map((option) => {
                   const isSelected = selectedType === option.type;
 
@@ -173,7 +303,9 @@ export const ProviderSetupPage = () => {
                         setShowSavedState(false);
                       }}
                     >
-                      <span className="provider-setup-option__eyebrow">{option.eyebrow}</span>
+                      <span className="provider-setup-option__eyebrow">
+                        {option.eyebrow}
+                      </span>
                       <strong>{option.title}</strong>
                       <p>{option.description}</p>
                     </button>
@@ -249,7 +381,9 @@ export const ProviderSetupPage = () => {
                       className="auth-form__input"
                       required
                       value={formValues.businessName}
-                      onChange={(event) => updateField("businessName", event.target.value)}
+                      onChange={(event) =>
+                        updateField("businessName", event.target.value)
+                      }
                       placeholder="Registered business name"
                     />
                   </label>
@@ -258,7 +392,9 @@ export const ProviderSetupPage = () => {
                     <input
                       className="auth-form__input"
                       value={formValues.businessNumber}
-                      onChange={(event) => updateField("businessNumber", event.target.value)}
+                      onChange={(event) =>
+                        updateField("businessNumber", event.target.value)
+                      }
                       placeholder="Optional"
                     />
                   </label>
@@ -280,7 +416,9 @@ export const ProviderSetupPage = () => {
                       className="auth-form__input"
                       required
                       value={formValues.professionTitle}
-                      onChange={(event) => updateField("professionTitle", event.target.value)}
+                      onChange={(event) =>
+                        updateField("professionTitle", event.target.value)
+                      }
                       placeholder="Certified electrician"
                     />
                   </label>
@@ -291,7 +429,9 @@ export const ProviderSetupPage = () => {
                       min="0"
                       type="number"
                       value={formValues.yearsOfExperience}
-                      onChange={(event) => updateField("yearsOfExperience", event.target.value)}
+                      onChange={(event) =>
+                        updateField("yearsOfExperience", event.target.value)
+                      }
                       placeholder="5"
                     />
                   </label>
@@ -313,8 +453,8 @@ export const ProviderSetupPage = () => {
                 <span className="eyebrow">Verification documents</span>
                 <h2>Prepare documents for the next verification step.</h2>
                 <p>
-                  Open the verification documents page from here, submit your documents, and
-                  you will return to setup after submission.
+                  Open the verification documents page from here, submit your documents,
+                  and you will return to setup after submission.
                 </p>
               </div>
 
@@ -334,15 +474,26 @@ export const ProviderSetupPage = () => {
                 <span>Setup saved</span>
                 <strong>Your provider profile is ready, but not verified yet.</strong>
                 <p>
-                  Your setup details are saved. Use the verification documents button above
-                  when you need to add or update review files.
+                  Your setup details are saved. Use the verification documents button
+                  above when you need to add or update review files.
                 </p>
               </div>
             ) : null}
 
+            {feedbackMessage ? (
+              <p className="profile-feedback">{feedbackMessage}</p>
+            ) : null}
+            {errorMessage ? (
+              <p className="profile-feedback profile-feedback--error">{errorMessage}</p>
+            ) : null}
+
             <div className="provider-setup__actions">
-              <button className="button" type="submit">
-                Save provider setup
+              <button
+                className="button"
+                disabled={isSubmitting || isLoadingProfile}
+                type="submit"
+              >
+                {isSubmitting ? "Saving..." : "Save provider setup"}
               </button>
               <NavLink className="button button--ghost" to={routePaths.providerHome}>
                 Back to provider home

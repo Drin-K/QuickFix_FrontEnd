@@ -1,7 +1,12 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ProviderHomeLayout } from "@/layouts/ProviderHomeLayout";
 import { routePaths } from "@/routes/routePaths";
-import { getProviderSetupDraft } from "@/services/provider.service";
+import {
+  getProviderProfile,
+  getProviderSetupDraft,
+  type ProviderProfileResponse,
+} from "@/services/provider.service";
 import { getAuthUser } from "@/utils/auth";
 
 const providerStats = [
@@ -34,8 +39,42 @@ const providerActions = [
 export const ProviderHomePage = () => {
   const user = getAuthUser();
   const displayName = user?.fullName || "Provider";
+  const [providerProfile, setProviderProfile] = useState<ProviderProfileResponse | null>(
+    null,
+  );
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const setupDraft = getProviderSetupDraft();
-  const setupComplete = Boolean(setupDraft?.isSetupComplete);
+  const setupComplete = profileLoaded
+    ? Boolean(providerProfile?.individualDetails || providerProfile?.companyDetails)
+    : Boolean(setupDraft?.isSetupComplete);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProviderProfile = async () => {
+      try {
+        const profile = await getProviderProfile();
+
+        if (isMounted) {
+          setProviderProfile(profile);
+        }
+      } catch {
+        if (isMounted) {
+          setProviderProfile(null);
+        }
+      } finally {
+        if (isMounted) {
+          setProfileLoaded(true);
+        }
+      }
+    };
+
+    void loadProviderProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <ProviderHomeLayout>
@@ -54,7 +93,10 @@ export const ProviderHomePage = () => {
                 <NavLink className="button" to={routePaths.providerBookings}>
                   Review bookings
                 </NavLink>
-                <NavLink className="button button--ghost" to={routePaths.providerAvailability}>
+                <NavLink
+                  className="button button--ghost"
+                  to={routePaths.providerAvailability}
+                >
                   Set availability
                 </NavLink>
               </div>
@@ -88,7 +130,11 @@ export const ProviderHomePage = () => {
                 <span className="workspace-status-label">
                   {setupComplete ? "Setup complete" : "Setup required"}
                 </span>
-                <h2>{setupComplete ? "Your provider profile is ready." : "You are not set up yet."}</h2>
+                <h2>
+                  {setupComplete
+                    ? "Your provider profile is ready."
+                    : "You are not set up yet."}
+                </h2>
                 <p>
                   {setupComplete
                     ? "Your basic provider details are saved. Verification is the next step before clients fully trust the profile."

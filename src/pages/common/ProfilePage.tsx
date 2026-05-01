@@ -7,6 +7,7 @@ import { ClientLayout } from "@/layouts/ClientLayout";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
 import type { AuthUserRole } from "@/services/auth.service";
+import { updateProviderProfile } from "@/services/provider.service";
 import {
   clearAuthSession,
   getAuthUser,
@@ -27,7 +28,7 @@ type FeedbackState = {
   message: string;
 } | null;
 
-const PROFILE_UPDATES_ENABLED = false;
+const PROVIDER_PROFILE_UPDATES_ENABLED = true;
 
 const getLayoutForRole = (role: AuthUserRole | undefined) => {
   if (role === "provider") {
@@ -121,6 +122,7 @@ export const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
 
   const role = user?.role ?? activeRole;
@@ -191,16 +193,66 @@ export const ProfilePage = () => {
     setFeedback(null);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!PROFILE_UPDATES_ENABLED) {
+    if (!user || !formValues) {
+      return;
+    }
+
+    if (user.role !== "provider" || !user.provider) {
       setFeedback({
         tone: "info",
         message:
-          "Profile editing UI is ready, but the backend does not expose a profile update endpoint yet. Your draft has not been saved.",
+          "Account profile editing is not connected to a backend update endpoint yet.",
       });
       return;
+    }
+
+    setIsSaving(true);
+    setFeedback(null);
+
+    try {
+      const providerProfile = await updateProviderProfile({
+        displayName: formValues.providerDisplayName.trim(),
+        description: formValues.providerDescription.trim() || undefined,
+        address: formValues.providerAddress.trim() || undefined,
+      });
+      const nextUser: MeResponse = {
+        ...user,
+        provider: {
+          ...user.provider,
+          type: providerProfile.provider.type,
+          displayName: providerProfile.provider.displayName,
+          description: providerProfile.provider.description,
+          cityId: providerProfile.provider.cityId,
+          address: providerProfile.provider.address,
+          isVerified: providerProfile.provider.isVerified,
+          averageRating:
+            providerProfile.provider.averageRating !== null
+              ? String(providerProfile.provider.averageRating)
+              : null,
+        },
+      };
+
+      setAuthUser(nextUser);
+      setUserState(nextUser);
+      setFormValues(buildFormState(nextUser));
+      setIsEditing(false);
+      setFeedback({
+        tone: "info",
+        message: "Provider profile updated successfully.",
+      });
+    } catch (error) {
+      setFeedback({
+        tone: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Provider profile could not be updated.",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -230,7 +282,11 @@ export const ProfilePage = () => {
               <h1>Unable to load profile</h1>
               <p>{errorMessage ?? "Please login again and retry."}</p>
               <div className="profile-actions">
-                <button className="button" type="button" onClick={() => void loadProfile()}>
+                <button
+                  className="button"
+                  type="button"
+                  onClick={() => void loadProfile()}
+                >
                   Retry
                 </button>
                 <NavLink className="button button--ghost" to={routePaths.login}>
@@ -384,7 +440,13 @@ export const ProfilePage = () => {
                       </div>
                       <div>
                         <dt>Status</dt>
-                        <dd>{isProvider ? (providerVerified ? "Verified" : "Pending") : "Active"}</dd>
+                        <dd>
+                          {isProvider
+                            ? providerVerified
+                              ? "Verified"
+                              : "Pending"
+                            : "Active"}
+                        </dd>
                       </div>
                     </dl>
                   </article>
@@ -407,7 +469,9 @@ export const ProfilePage = () => {
                         </div>
                         <div>
                           <dt>Description</dt>
-                          <dd>{user.provider.description || "No provider description yet."}</dd>
+                          <dd>
+                            {user.provider.description || "No provider description yet."}
+                          </dd>
                         </div>
                       </dl>
                     </article>
@@ -421,17 +485,21 @@ export const ProfilePage = () => {
                     <span className="eyebrow">Edit</span>
                     <h2>Profile form</h2>
                   </div>
-                  <p>Cleaner editing layout with role-aware fields and consistent spacing.</p>
+                  <p>
+                    Cleaner editing layout with role-aware fields and consistent spacing.
+                  </p>
                 </div>
 
                 <form className="profile-form" onSubmit={handleSubmit}>
                   <div className="profile-form__toolbar">
                     <div className="profile-form__status">
-                      <strong>{isEditing ? "Editing draft" : "Viewing current values"}</strong>
+                      <strong>
+                        {isEditing ? "Editing draft" : "Viewing current values"}
+                      </strong>
                       <span>
-                        {PROFILE_UPDATES_ENABLED
-                          ? "Changes can be saved directly."
-                          : "Save support is waiting on a backend update endpoint."}
+                        {isProvider
+                          ? "Provider profile changes can be saved directly."
+                          : "Account profile save support is waiting on a backend update endpoint."}
                       </span>
                     </div>
 
@@ -447,14 +515,20 @@ export const ProfilePage = () => {
                           </button>
                           <button
                             className="button"
-                            disabled={!PROFILE_UPDATES_ENABLED}
+                            disabled={
+                              !isProvider || !PROVIDER_PROFILE_UPDATES_ENABLED || isSaving
+                            }
                             type="submit"
                           >
-                            {PROFILE_UPDATES_ENABLED ? "Save changes" : "Save unavailable"}
+                            {isSaving ? "Saving..." : "Save changes"}
                           </button>
                         </>
                       ) : (
-                        <button className="button" type="button" onClick={handleStartEditing}>
+                        <button
+                          className="button"
+                          type="button"
+                          onClick={handleStartEditing}
+                        >
                           Edit profile
                         </button>
                       )}
@@ -480,7 +554,9 @@ export const ProfilePage = () => {
                         className="auth-form__input"
                         disabled={!isEditing}
                         value={formValues.fullName}
-                        onChange={(event) => handleFieldChange("fullName", event.target.value)}
+                        onChange={(event) =>
+                          handleFieldChange("fullName", event.target.value)
+                        }
                       />
                     </label>
 
@@ -496,7 +572,9 @@ export const ProfilePage = () => {
                         disabled={!isEditing}
                         placeholder="Add a phone number"
                         value={formValues.phone}
-                        onChange={(event) => handleFieldChange("phone", event.target.value)}
+                        onChange={(event) =>
+                          handleFieldChange("phone", event.target.value)
+                        }
                       />
                     </label>
 
@@ -571,7 +649,10 @@ export const ProfilePage = () => {
                   ) : null}
                   {user.role === "provider" ? (
                     <>
-                      <NavLink className="button button--ghost" to={routePaths.providerBookings}>
+                      <NavLink
+                        className="button button--ghost"
+                        to={routePaths.providerBookings}
+                      >
                         View bookings
                       </NavLink>
                       <NavLink
@@ -582,7 +663,11 @@ export const ProfilePage = () => {
                       </NavLink>
                     </>
                   ) : null}
-                  <button className="button button--ghost" type="button" onClick={handleLogout}>
+                  <button
+                    className="button button--ghost"
+                    type="button"
+                    onClick={handleLogout}
+                  >
                     Logout
                   </button>
                 </div>
@@ -606,7 +691,9 @@ export const ProfilePage = () => {
                     </span>
                   </article>
                   <article>
-                    <strong>{isProvider ? (providerVerified ? "Verified" : "Pending") : "Ready"}</strong>
+                    <strong>
+                      {isProvider ? (providerVerified ? "Verified" : "Pending") : "Ready"}
+                    </strong>
                     <span>
                       {isProvider
                         ? providerVerified
