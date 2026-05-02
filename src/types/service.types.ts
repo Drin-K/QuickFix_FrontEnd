@@ -81,7 +81,7 @@ export type ServiceMutationPayload = {
   title: string;
   description: string | null;
   basePrice: string;
-  categoryId: number | null;
+  categoryId: number;
   isActive: boolean;
   coverImageUrl?: string | null;
 };
