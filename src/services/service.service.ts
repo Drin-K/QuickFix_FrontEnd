@@ -165,6 +165,19 @@ const normalizeServicesResponse = (
   return [];
 };
 
+const normalizeServiceResponse = (
+  response:
+    | ServiceApiListItem
+    | ServiceApiDetails
+    | { data: ServiceApiListItem | ServiceApiDetails },
+): ServiceApiListItem | ServiceApiDetails => {
+  if ("data" in response) {
+    return response.data;
+  }
+
+  return response;
+};
+
 export const serviceService = {
   async getMyServices(): Promise<ServicesApiListResponse["services"]> {
     const response = await api.get<
@@ -176,6 +189,18 @@ export const serviceService = {
     });
 
     return normalizeServicesResponse(response);
+  },
+
+  async getMyService(serviceId: number): Promise<ServiceApiListItem | ServiceApiDetails> {
+    const response = await api.get<
+      | ServiceApiListItem
+      | ServiceApiDetails
+      | { data: ServiceApiListItem | ServiceApiDetails }
+    >(`/provider/services/${serviceId}`, {
+      requireAuth: true,
+    });
+
+    return normalizeServiceResponse(response);
   },
 
   create(payload: ServiceMutationPayload): Promise<ServiceApiListItem> {

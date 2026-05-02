@@ -11,6 +11,8 @@ import { DashboardPage } from "@/pages/client/DashboardPage";
 import { MyBookingsPage } from "@/pages/client/MyBookingsPage";
 import { ProviderHomePage } from "@/pages/provider/ProviderHomePage";
 import { AvailabilityPage } from "@/pages/provider/AvailabilityPage";
+import { CreateServicePage } from "@/pages/provider/CreateServicePage";
+import { EditServicePage } from "@/pages/provider/EditServicePage";
 import { ProviderBookingsPage } from "@/pages/provider/ProviderBookingsPage";
 import { MyServicesPage } from "@/pages/provider/MyServicesPage";
 import { ProviderSetupPage } from "@/pages/provider/ProviderSetupPage";
@@ -89,6 +91,26 @@ export const AppRouter = () => {
           <ProtectedRoute>
             <RoleRoute allowedRoles={["provider"]}>
               <ProviderSetupPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.providerServiceCreate}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["provider"]}>
+              <CreateServicePage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.providerServiceEdit}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["provider"]}>
+              <EditServicePage />
             </RoleRoute>
           </ProtectedRoute>
         }

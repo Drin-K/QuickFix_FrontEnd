@@ -9,6 +9,8 @@ export const routePaths = {
   providerHome: "/provider-home",
   providerSetup: "/provider/setup",
   providerServices: "/provider/services",
+  providerServiceCreate: "/provider/services/new",
+  providerServiceEdit: "/provider/services/:id/edit",
   providerBookings: "/provider/bookings",
   providerAvailability: "/provider/availability",
   providerVerification: "/provider/verification",
