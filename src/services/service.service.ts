@@ -184,7 +184,7 @@ export const serviceService = {
       | ServicesApiListResponse
       | { data: ServicesApiListResponse["services"] }
       | ServicesApiListResponse["services"]
-    >("/provider/services", {
+    >("/provider/services/my", {
       requireAuth: true,
     });
 
@@ -214,7 +214,7 @@ export const serviceService = {
     serviceId: number,
     payload: ServiceMutationPayload,
   ): Promise<ServiceApiListItem> {
-    return api.patch<ServiceApiListItem>(`/provider/services/${serviceId}`, {
+    return api.put<ServiceApiListItem>(`/provider/services/${serviceId}`, {
       body: payload,
       requireAuth: true,
     });
