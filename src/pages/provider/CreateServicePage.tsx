@@ -43,6 +43,9 @@ export const CreateServicePage = () => {
         }
 
         setCategories([]);
+        setErrorMessage(
+          error instanceof Error ? error.message : "Failed to load service categories.",
+        );
       } finally {
         setIsLoading(false);
       }

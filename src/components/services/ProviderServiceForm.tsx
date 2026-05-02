@@ -23,7 +23,7 @@ const toServiceMutationPayload = (
   title: form.title.trim(),
   description: form.description.trim() || null,
   basePrice: form.basePrice.trim(),
-  categoryId: form.categoryId ? Number(form.categoryId) : null,
+  categoryId: Number(form.categoryId),
   isActive: form.isActive,
 });
 
@@ -53,8 +53,11 @@ export const ProviderServiceForm = ({
   const [form, setForm] = useState<ProviderServiceFormState>(initialValue);
 
   const canSubmit = useMemo(
-    () => form.title.trim().length > 0 && form.basePrice.trim().length > 0,
-    [form.basePrice, form.title],
+    () =>
+      form.title.trim().length > 0 &&
+      form.basePrice.trim().length > 0 &&
+      Number(form.categoryId) > 0,
+    [form.basePrice, form.categoryId, form.title],
   );
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -90,8 +93,11 @@ export const ProviderServiceForm = ({
           onChange={(event) =>
             setForm((current) => ({ ...current, categoryId: event.target.value }))
           }
+          required
         >
-          <option value="">Uncategorized</option>
+          <option value="" disabled>
+            Select category
+          </option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
