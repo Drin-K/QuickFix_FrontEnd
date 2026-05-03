@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/api";
 import { ProviderServiceForm } from "@/components/services/ProviderServiceForm";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
+import {
+  getProviderVerificationStatus,
+  type ProviderVerificationStatus,
+} from "@/services/provider.service";
 import { getCategories, serviceService } from "@/services/service.service";
 import type { ServiceApiCategory, ServiceMutationPayload } from "@/types/service.types";
 import { clearAuthSession } from "@/utils/auth";
@@ -15,6 +19,13 @@ export const CreateServicePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [verificationStatus, setVerificationStatus] =
+    useState<ProviderVerificationStatus | null>(null);
+
+  const requiresVerification =
+    verificationStatus !== null && !verificationStatus.isVerified;
+  const verificationMessage =
+    "Provider verification is required before creating or publishing services. Complete setup and document verification first.";
 
   const handleAuthError = useCallback(
     (error: unknown): boolean => {
@@ -35,8 +46,12 @@ export const CreateServicePage = () => {
       setErrorMessage("");
 
       try {
-        const response = await getCategories();
-        setCategories(response.categories);
+        const [categoriesResponse, statusResponse] = await Promise.all([
+          getCategories(),
+          getProviderVerificationStatus(),
+        ]);
+        setCategories(categoriesResponse.categories);
+        setVerificationStatus(statusResponse);
       } catch (error) {
         if (handleAuthError(error)) {
           return;
@@ -55,6 +70,11 @@ export const CreateServicePage = () => {
   }, [handleAuthError]);
 
   const handleSubmit = async (payload: ServiceMutationPayload) => {
+    if (requiresVerification) {
+      setErrorMessage(verificationMessage);
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage("");
     setSuccessMessage("");
@@ -100,11 +120,29 @@ export const CreateServicePage = () => {
               </p>
             </div>
 
+            {requiresVerification ? (
+              <div className="provider-setup-verification">
+                <span>Verification required</span>
+                <strong>Verify your provider profile before creating services.</strong>
+                <p>{verificationMessage}</p>
+                <Link
+                  className="workspace-card-link"
+                  to={routePaths.providerVerification}
+                >
+                  Go to verification
+                </Link>
+              </div>
+            ) : null}
+
             <ProviderServiceForm
               categories={categories}
               submitLabel="Create service"
               submittingLabel="Creating..."
               isSubmitting={isSubmitting}
+              isSubmitDisabled={requiresVerification}
+              submitDisabledMessage={
+                requiresVerification ? verificationMessage : undefined
+              }
               errorMessage={errorMessage}
               successMessage={successMessage}
               onCancel={() => navigate(routePaths.providerServices)}

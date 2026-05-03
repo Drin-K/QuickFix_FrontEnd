@@ -33,6 +33,8 @@ type ProviderServiceFormProps = {
   submitLabel: string;
   submittingLabel: string;
   isSubmitting: boolean;
+  isSubmitDisabled?: boolean;
+  submitDisabledMessage?: string;
   errorMessage?: string;
   successMessage?: string;
   onCancel?: () => void;
@@ -45,6 +47,8 @@ export const ProviderServiceForm = ({
   submitLabel,
   submittingLabel,
   isSubmitting,
+  isSubmitDisabled = false,
+  submitDisabledMessage,
   errorMessage,
   successMessage,
   onCancel,
@@ -64,6 +68,10 @@ export const ProviderServiceForm = ({
     event.preventDefault();
 
     if (!canSubmit) {
+      return;
+    }
+
+    if (isSubmitDisabled) {
       return;
     }
 
@@ -143,10 +151,17 @@ export const ProviderServiceForm = ({
       </label>
 
       {errorMessage ? <p className="auth-form__error">{errorMessage}</p> : null}
+      {submitDisabledMessage ? (
+        <p className="auth-form__error">{submitDisabledMessage}</p>
+      ) : null}
       {successMessage ? <p className="auth-form__success">{successMessage}</p> : null}
 
       <div className="my-services-form-card__actions">
-        <button className="button" type="submit" disabled={!canSubmit || isSubmitting}>
+        <button
+          className="button"
+          type="submit"
+          disabled={!canSubmit || isSubmitting || isSubmitDisabled}
+        >
           {isSubmitting ? submittingLabel : submitLabel}
         </button>
         {onCancel ? (

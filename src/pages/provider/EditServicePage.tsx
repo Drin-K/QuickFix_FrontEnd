@@ -7,6 +7,10 @@ import {
 } from "@/components/services/ProviderServiceForm";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
+import {
+  getProviderVerificationStatus,
+  type ProviderVerificationStatus,
+} from "@/services/provider.service";
 import { getCategories, serviceService } from "@/services/service.service";
 import type {
   ServiceApiCategory,
@@ -36,9 +40,15 @@ export const EditServicePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [verificationStatus, setVerificationStatus] =
+    useState<ProviderVerificationStatus | null>(null);
 
   const serviceId = Number(id);
   const hasValidServiceId = Number.isInteger(serviceId) && serviceId > 0;
+  const requiresVerification =
+    verificationStatus !== null && !verificationStatus.isVerified;
+  const verificationMessage =
+    "Provider verification is required before publishing services. Complete setup and document verification first.";
 
   const handleAuthError = useCallback(
     (error: unknown): boolean => {
@@ -65,14 +75,16 @@ export const EditServicePage = () => {
       setErrorMessage("");
 
       try {
-        const [service, categoriesResponse] = await Promise.all([
+        const [service, categoriesResponse, statusResponse] = await Promise.all([
           serviceService.getMyService(serviceId),
           getCategories().catch(() => ({ categories: [] })),
+          getProviderVerificationStatus(),
         ]);
 
         setInitialValue(toFormState(service));
         setServiceTitle(service.title);
         setCategories(categoriesResponse.categories);
+        setVerificationStatus(statusResponse);
       } catch (error) {
         if (handleAuthError(error)) {
           return;
@@ -92,6 +104,11 @@ export const EditServicePage = () => {
   const handleSubmit = async (payload: ServiceMutationPayload) => {
     if (!hasValidServiceId) {
       setErrorMessage("Invalid service id.");
+      return;
+    }
+
+    if (requiresVerification && payload.isActive) {
+      setErrorMessage(verificationMessage);
       return;
     }
 
@@ -142,6 +159,14 @@ export const EditServicePage = () => {
             </div>
 
             {isLoading ? <p>Loading service...</p> : null}
+
+            {requiresVerification ? (
+              <div className="provider-setup-verification">
+                <span>Verification required</span>
+                <strong>Publish is disabled until your profile is verified.</strong>
+                <p>{verificationMessage}</p>
+              </div>
+            ) : null}
 
             {!isLoading && !initialValue ? (
               <p className="auth-form__error">
