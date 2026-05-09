@@ -7,50 +7,26 @@ import { routePaths } from "@/routes/routePaths";
 import type { AuthUserRole } from "@/services/auth.service";
 import { getCategories, getServices } from "@/services/service.service";
 import type { ServiceApiCategory, ServiceApiListItem } from "@/types/service.types";
-import {
-  getActiveTenantId,
-  getAuthUser,
-  isAuthenticated,
-  setActiveTenantId,
-} from "@/utils/auth";
+import { getAuthUser, isAuthenticated } from "@/utils/auth";
 import type { PropsWithChildren } from "react";
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const ServicesPageContent = () => {
-  const [searchParams] = useSearchParams();
   const [services, setServices] = useState<ServiceApiListItem[]>([]);
   const [categories, setCategories] = useState<ServiceApiCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const tenantIdFromQuery = Number(searchParams.get("tenantId"));
-    const tenantId =
-      Number.isInteger(tenantIdFromQuery) && tenantIdFromQuery > 0
-        ? tenantIdFromQuery
-        : getActiveTenantId();
-
-    if (!tenantId) {
-      setServices([]);
-      setCategories([]);
-      setErrorMessage(
-        "Tenant context is missing. Open this page from a tenant-specific link or sign in first.",
-      );
-      setIsLoading(false);
-      return;
-    }
-
-    setActiveTenantId(tenantId);
-
     const loadServices = async () => {
       try {
         setIsLoading(true);
         setErrorMessage("");
 
         const [servicesResponse, categoriesResponse] = await Promise.all([
-          getServices({ tenantId }),
-          getCategories({ tenantId }).catch(() => ({ categories: [] })),
+          getServices({ tenantId: null }),
+          getCategories({ tenantId: null }).catch(() => ({ categories: [] })),
         ]);
 
         setServices(servicesResponse.services);
@@ -70,7 +46,7 @@ const ServicesPageContent = () => {
     };
 
     void loadServices();
-  }, [searchParams]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -78,7 +54,7 @@ const ServicesPageContent = () => {
         <div className="container">
           <div className="services-page__hero">
             <span className="eyebrow">Loading services</span>
-            <h1>We are loading services for the current tenant.</h1>
+            <h1>We are loading marketplace services.</h1>
             <p>Please wait a moment while the marketplace list is prepared.</p>
           </div>
         </div>
@@ -91,10 +67,10 @@ const ServicesPageContent = () => {
       <div className="container">
         <div className="services-page__hero">
           <span className="eyebrow">Marketplace services</span>
-          <h1>Browse real services available in the current QuickFix tenant.</h1>
+          <h1>Browse real services available across QuickFix.</h1>
           <p>
-            This listing now reads live backend data from the tenant-scoped services
-            endpoint and keeps details navigation in the same tenant context.
+            This listing reads live backend data from the global marketplace services
+            endpoint.
           </p>
         </div>
 
@@ -135,8 +111,8 @@ const ServicesPageContent = () => {
         <div className="section-heading services-page__heading">
           <h2>Available services</h2>
           <p>
-            Each card is fetched from `GET /services` and limited to the currently active
-            tenant.
+            Each card is fetched from `GET /services` and can belong to any provider
+            tenant in the marketplace.
           </p>
         </div>
 
@@ -151,8 +127,8 @@ const ServicesPageContent = () => {
         {!errorMessage && services.length === 0 ? (
           <div className="services-page__hero">
             <span className="eyebrow">No services yet</span>
-            <h2>This tenant does not have active services available right now.</h2>
-            <p>Check back later after providers publish services for this marketplace.</p>
+            <h2>The marketplace does not have active services available right now.</h2>
+            <p>Check back later after providers publish services.</p>
           </div>
         ) : null}
 
@@ -162,7 +138,7 @@ const ServicesPageContent = () => {
               <Link
                 key={service.id}
                 className="service-card service-card--interactive"
-                to={`${routePaths.services}/${service.id}?tenantId=${service.tenantId}`}
+                to={`${routePaths.services}/${service.id}`}
               >
                 <article>
                   <div className="service-card__icon" aria-hidden="true">

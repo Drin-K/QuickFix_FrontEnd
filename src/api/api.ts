@@ -120,7 +120,7 @@ const request = async <T>(
     throw new ApiError("Authentication is required", 401, null);
   }
 
-  const activeTenantId = tenantId ?? getActiveTenantId();
+  const activeTenantId = tenantId === undefined ? getActiveTenantId() : tenantId;
 
   if (authToken) {
     requestHeaders.set("Authorization", `Bearer ${authToken}`);
