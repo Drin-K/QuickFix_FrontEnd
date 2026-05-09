@@ -7,6 +7,11 @@ const rootDir = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    watch: {
+      ignored: ["**/.tools/**"],
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(rootDir, "./src"),
