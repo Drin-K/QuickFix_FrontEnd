@@ -3,18 +3,12 @@ import { createBooking } from "@/services/booking.service";
 import { PublicLayout } from "@/layouts/PublicLayout";
 import { getServiceById } from "@/services/service.service";
 import type { ServiceApiDetails } from "@/types/service.types";
-import {
-  getActiveTenantId,
-  getAuthUser,
-  isAuthenticated,
-  setActiveTenantId,
-} from "@/utils/auth";
+import { getAuthUser, isAuthenticated, setActiveTenantId } from "@/utils/auth";
 import { type FormEvent, useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 export const ServiceDetailsPage = () => {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
   const [service, setService] = useState<ServiceApiDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -29,26 +23,9 @@ export const ServiceDetailsPage = () => {
 
   useEffect(() => {
     const serviceId = Number(id);
-    const tenantIdFromQuery = Number(searchParams.get("tenantId"));
-    const tenantId =
-      Number.isInteger(tenantIdFromQuery) && tenantIdFromQuery > 0
-        ? tenantIdFromQuery
-        : getActiveTenantId();
-
-    if (tenantId) {
-      setActiveTenantId(tenantId);
-    }
 
     if (!Number.isInteger(serviceId) || serviceId <= 0) {
       setErrorMessage("The requested service id is invalid.");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!tenantId) {
-      setErrorMessage(
-        "Tenant context is missing for this service. Open the service link with a valid tenant first.",
-      );
       setIsLoading(false);
       return;
     }
@@ -57,7 +34,7 @@ export const ServiceDetailsPage = () => {
       try {
         setIsLoading(true);
         setErrorMessage("");
-        const response = await getServiceById(serviceId, tenantId);
+        const response = await getServiceById(serviceId, null);
         setService(response);
         setActiveTenantId(response.tenantId);
       } catch (error) {
@@ -72,7 +49,7 @@ export const ServiceDetailsPage = () => {
     };
 
     void loadService();
-  }, [id, searchParams]);
+  }, [id]);
 
   const handleBookingSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -188,8 +165,8 @@ export const ServiceDetailsPage = () => {
             <div className="service-details__panel">
               <h2>What is included</h2>
               <p>
-                This page now reads real service details from the backend and keeps
-                booking creation tied to the current tenant context.
+                This page reads real service details from the global marketplace and
+                uses the service tenant only when a client creates a booking.
               </p>
               <ul className="service-details__highlights">
                 <li>Provider: {service.provider.displayName}</li>

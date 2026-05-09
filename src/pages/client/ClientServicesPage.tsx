@@ -26,9 +26,9 @@ export const ClientServicesPage = () => {
   return (
     <ClientLayout>
       <ServicesOverviewSection
-        eyebrow="Client services"
-        title="Choose services you want to book as a client."
-        description="Clients see a booking-focused services area with the categories they can explore and reserve."
+        eyebrow="Client marketplace"
+        title="Choose marketplace services you want to book as a client."
+        description="Clients see a booking-focused marketplace with the categories they can explore and reserve."
         records={clientServices}
       />
     </ClientLayout>
