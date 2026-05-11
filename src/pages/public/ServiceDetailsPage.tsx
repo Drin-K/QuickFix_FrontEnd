@@ -1,14 +1,25 @@
 import { ApiError } from "@/api/api";
 import { createBooking } from "@/services/booking.service";
 import { PublicLayout } from "@/layouts/PublicLayout";
+import { routePaths } from "@/routes/routePaths";
+import { conversationService } from "@/services/conversation.service";
 import { getServiceById } from "@/services/service.service";
 import type { ServiceApiDetails } from "@/types/service.types";
 import { getAuthUser, isAuthenticated, setActiveTenantId } from "@/utils/auth";
 import { type FormEvent, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+
+const openConversationWidget = (conversation: unknown) => {
+  window.dispatchEvent(
+    new CustomEvent("quickfix:open-conversation", {
+      detail: { conversation },
+    }),
+  );
+};
 
 export const ServiceDetailsPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [service, setService] = useState<ServiceApiDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -17,9 +28,12 @@ export const ServiceDetailsPage = () => {
   const [bookingError, setBookingError] = useState("");
   const [bookingSuccess, setBookingSuccess] = useState("");
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  const [conversationError, setConversationError] = useState("");
+  const [isStartingConversation, setIsStartingConversation] = useState(false);
 
   const authUser = getAuthUser();
   const canBook = isAuthenticated() && authUser?.role === "client";
+  const canStartConversation = canBook;
 
   useEffect(() => {
     const serviceId = Number(id);
@@ -89,6 +103,34 @@ export const ServiceDetailsPage = () => {
     }
   };
 
+  const handleStartConversation = async () => {
+    if (!service) {
+      return;
+    }
+
+    if (!canStartConversation) {
+      navigate(routePaths.login);
+      return;
+    }
+
+    try {
+      setConversationError("");
+      setIsStartingConversation(true);
+      const response = await conversationService.createConversation({
+        serviceId: service.id,
+      });
+      openConversationWidget(response.conversation);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setConversationError(error.message);
+      } else {
+        setConversationError("We could not start this conversation right now.");
+      }
+    } finally {
+      setIsStartingConversation(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <PublicLayout>
@@ -149,6 +191,19 @@ export const ServiceDetailsPage = () => {
                   {service.provider.description ??
                     "Provider description will appear here when available."}
                 </p>
+                {canStartConversation ? (
+                  <button
+                    className="button service-details__message-button"
+                    disabled={isStartingConversation}
+                    type="button"
+                    onClick={() => void handleStartConversation()}
+                  >
+                    {isStartingConversation ? "Opening inbox..." : "Message provider"}
+                  </button>
+                ) : null}
+                {conversationError ? (
+                  <p className="auth-form__error">{conversationError}</p>
+                ) : null}
               </div>
 
               <div className="service-details__meta-card">
