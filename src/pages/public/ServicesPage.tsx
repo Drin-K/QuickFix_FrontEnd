@@ -5,18 +5,34 @@ import { PublicLayout } from "@/layouts/PublicLayout";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
 import type { AuthUserRole } from "@/services/auth.service";
+import { conversationService } from "@/services/conversation.service";
 import { getCategories, getServices } from "@/services/service.service";
 import type { ServiceApiCategory, ServiceApiListItem } from "@/types/service.types";
 import { getAuthUser, isAuthenticated } from "@/utils/auth";
 import type { PropsWithChildren } from "react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
+const openConversationWidget = (conversation: unknown) => {
+  window.dispatchEvent(
+    new CustomEvent("quickfix:open-conversation", {
+      detail: { conversation },
+    }),
+  );
+};
 
 const ServicesPageContent = () => {
+  const navigate = useNavigate();
+  const authUser = getAuthUser();
   const [services, setServices] = useState<ServiceApiListItem[]>([]);
   const [categories, setCategories] = useState<ServiceApiCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [conversationError, setConversationError] = useState("");
+  const [startingConversationServiceId, setStartingConversationServiceId] = useState<
+    number | null
+  >(null);
+  const canStartConversation = isAuthenticated() && authUser?.role === "client";
 
   useEffect(() => {
     const loadServices = async () => {
@@ -47,6 +63,28 @@ const ServicesPageContent = () => {
 
     void loadServices();
   }, []);
+
+  const handleStartConversation = async (serviceId: number) => {
+    if (!canStartConversation) {
+      navigate(routePaths.login);
+      return;
+    }
+
+    try {
+      setConversationError("");
+      setStartingConversationServiceId(serviceId);
+      const response = await conversationService.createConversation({ serviceId });
+      openConversationWidget(response.conversation);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setConversationError(error.message);
+      } else {
+        setConversationError("We could not start this conversation right now.");
+      }
+    } finally {
+      setStartingConversationServiceId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -124,6 +162,12 @@ const ServicesPageContent = () => {
           </div>
         ) : null}
 
+        {conversationError ? (
+          <div className="services-page__notice" role="alert">
+            {conversationError}
+          </div>
+        ) : null}
+
         {!errorMessage && services.length === 0 ? (
           <div className="services-page__hero">
             <span className="eyebrow">No services yet</span>
@@ -135,29 +179,42 @@ const ServicesPageContent = () => {
         {!errorMessage && services.length > 0 ? (
           <div className="services-grid">
             {services.map((service) => (
-              <Link
-                key={service.id}
-                className="service-card service-card--interactive"
-                to={`${routePaths.services}/${service.id}`}
-              >
-                <article>
-                  <div className="service-card__icon" aria-hidden="true">
-                    {service.category?.name?.slice(0, 1) ?? "S"}
-                  </div>
-                  <h3>{service.title}</h3>
-                  <p>
-                    {service.description ??
-                      "No description is available yet for this service."}
-                  </p>
-                  <span className="services-page__meta">
-                    {service.provider?.displayName ?? "Provider information unavailable"}
-                  </span>
-                  <span className="services-page__status">
-                    {service.category?.name ?? "Uncategorized"} - EUR {service.basePrice}
-                  </span>
-                  <span className="service-card__link">View service details</span>
-                </article>
-              </Link>
+              <article key={service.id} className="service-card service-card--interactive">
+                <div className="service-card__icon" aria-hidden="true">
+                  {service.category?.name?.slice(0, 1) ?? "S"}
+                </div>
+                <h3>{service.title}</h3>
+                <p>
+                  {service.description ??
+                    "No description is available yet for this service."}
+                </p>
+                <span className="services-page__meta">
+                  {service.provider?.displayName ?? "Provider information unavailable"}
+                </span>
+                <span className="services-page__status">
+                  {service.category?.name ?? "Uncategorized"} - EUR {service.basePrice}
+                </span>
+                <div className="service-card__actions">
+                  <Link
+                    className="service-card__link"
+                    to={`${routePaths.services}/${service.id}`}
+                  >
+                    View service details
+                  </Link>
+                  {canStartConversation && service.provider ? (
+                    <button
+                      className="service-card__message"
+                      disabled={startingConversationServiceId === service.id}
+                      type="button"
+                      onClick={() => void handleStartConversation(service.id)}
+                    >
+                      {startingConversationServiceId === service.id
+                        ? "Opening..."
+                        : "Message provider"}
+                    </button>
+                  ) : null}
+                </div>
+              </article>
             ))}
           </div>
         ) : null}
