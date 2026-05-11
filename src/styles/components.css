@@ -2628,12 +2628,40 @@
   font-size: 0.82rem;
 }
 
+.conversation-launcher__system--error {
+  background: rgba(220, 38, 38, 0.09);
+  color: #b91c1c;
+}
+
+.conversation-launcher__message-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.conversation-launcher__message-row--local {
+  justify-content: flex-end;
+}
+
 .conversation-launcher__bubble {
+  display: grid;
+  gap: 0.35rem;
   max-width: 78%;
   padding: 0.8rem 0.95rem;
   border-radius: 1.05rem;
   line-height: 1.35;
   box-shadow: 0 12px 26px rgba(23, 50, 77, 0.08);
+}
+
+.conversation-launcher__bubble span {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.conversation-launcher__bubble small {
+  justify-self: end;
+  color: rgba(23, 50, 77, 0.52);
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .conversation-launcher__bubble--remote {
@@ -2647,6 +2675,10 @@
   border-bottom-right-radius: 0.35rem;
   background: var(--color-primary);
   color: white;
+}
+
+.conversation-launcher__bubble--local small {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .conversation-launcher__composer {
@@ -2683,6 +2715,7 @@
 }
 
 .conversation-launcher__composer button:disabled {
+  cursor: not-allowed;
   opacity: 0.45;
 }
 

@@ -21,8 +21,31 @@ export type ConversationListItem = {
   createdAt: string;
 };
 
+export type ConversationMessage = {
+  id: number;
+  tenantId: number;
+  conversationId: number;
+  senderUserId: number;
+  messageTypeId: number;
+  content: string;
+  sentAt: string;
+  senderUser?: ConversationParticipant | null;
+  messageType?: {
+    id: number;
+    name: string;
+  } | null;
+};
+
 export type ConversationsListResponse = {
   conversations: ConversationListItem[];
+};
+
+export type ConversationDetailsResponse = {
+  conversation: ConversationListItem;
+};
+
+export type ConversationMessagesResponse = {
+  messages: ConversationMessage[];
 };
 
 export type CreateConversationPayload = {
@@ -31,4 +54,12 @@ export type CreateConversationPayload = {
 
 export type CreateConversationResponse = {
   conversation: ConversationListItem;
+};
+
+export type SendConversationMessagePayload = {
+  content: string;
+};
+
+export type SendConversationMessageResponse = {
+  message: ConversationMessage;
 };
