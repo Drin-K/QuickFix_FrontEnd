@@ -2304,6 +2304,20 @@
   resize: vertical;
 }
 
+.profile-form .auth-form__input:disabled,
+.profile-form .profile-form__textarea:disabled {
+  background: rgba(23, 50, 77, 0.04);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.profile-form__actions .button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+  box-shadow: none;
+}
+
 .profile-actions {
   flex-wrap: wrap;
 }

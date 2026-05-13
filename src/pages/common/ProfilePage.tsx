@@ -305,6 +305,7 @@ export const ProfilePage = () => {
   const providerVerified = Boolean(user.provider?.isVerified);
   const dashboardRoute = getDashboardRoute(user.role);
   const isProvider = user.role === "provider" && Boolean(user.provider);
+  const canSaveProviderProfile = isProvider && PROVIDER_PROFILE_UPDATES_ENABLED;
 
   return (
     <Layout>
@@ -497,8 +498,8 @@ export const ProfilePage = () => {
                         {isEditing ? "Editing draft" : "Viewing current values"}
                       </strong>
                       <span>
-                        {isProvider
-                          ? "Provider profile changes can be saved directly."
+                        {canSaveProviderProfile
+                          ? "Only provider business fields below are connected to save."
                           : "Account profile save support is waiting on a backend update endpoint."}
                       </span>
                     </div>
@@ -516,7 +517,7 @@ export const ProfilePage = () => {
                           <button
                             className="button"
                             disabled={
-                              !isProvider || !PROVIDER_PROFILE_UPDATES_ENABLED || isSaving
+                              !canSaveProviderProfile || isSaving
                             }
                             type="submit"
                           >
@@ -526,10 +527,13 @@ export const ProfilePage = () => {
                       ) : (
                         <button
                           className="button"
+                          disabled={!canSaveProviderProfile}
                           type="button"
                           onClick={handleStartEditing}
                         >
-                          Edit profile
+                          {canSaveProviderProfile
+                            ? "Edit provider profile"
+                            : "Editing coming soon"}
                         </button>
                       )}
                     </div>
@@ -552,7 +556,7 @@ export const ProfilePage = () => {
                       <span>Full name</span>
                       <input
                         className="auth-form__input"
-                        disabled={!isEditing}
+                        disabled
                         value={formValues.fullName}
                         onChange={(event) =>
                           handleFieldChange("fullName", event.target.value)
@@ -569,7 +573,7 @@ export const ProfilePage = () => {
                       <span>Phone</span>
                       <input
                         className="auth-form__input"
-                        disabled={!isEditing}
+                        disabled
                         placeholder="Add a phone number"
                         value={formValues.phone}
                         onChange={(event) =>
@@ -589,7 +593,7 @@ export const ProfilePage = () => {
                           <span>Provider display name</span>
                           <input
                             className="auth-form__input"
-                            disabled={!isEditing}
+                            disabled={!isEditing || !canSaveProviderProfile}
                             value={formValues.providerDisplayName}
                             onChange={(event) =>
                               handleFieldChange("providerDisplayName", event.target.value)
@@ -601,7 +605,7 @@ export const ProfilePage = () => {
                           <span>Provider address</span>
                           <input
                             className="auth-form__input"
-                            disabled={!isEditing}
+                            disabled={!isEditing || !canSaveProviderProfile}
                             placeholder="Business address"
                             value={formValues.providerAddress}
                             onChange={(event) =>
@@ -614,7 +618,7 @@ export const ProfilePage = () => {
                           <span>Provider description</span>
                           <textarea
                             className="auth-form__input profile-form__textarea"
-                            disabled={!isEditing}
+                            disabled={!isEditing || !canSaveProviderProfile}
                             placeholder="Describe your services and specialties"
                             value={formValues.providerDescription}
                             onChange={(event) =>
