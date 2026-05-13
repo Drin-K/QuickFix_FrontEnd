@@ -1,5 +1,12 @@
 export type BookingStatus = "pending" | "confirmed" | "completed";
 
+export type BookingReview = {
+  id: number;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+};
+
 export type BookingListItem = {
   id: number;
   serviceTitle: string;
@@ -13,6 +20,28 @@ export type CreateBookingPayload = {
   serviceId: number;
   bookingDate: string;
   notes?: string;
+};
+
+export type CreateReviewPayload = {
+  bookingId: number;
+  rating: number;
+  comment?: string;
+};
+
+export type ReviewApiItem = {
+  id: number;
+  tenantId: number;
+  bookingId: number;
+  clientUserId: number;
+  providerId: number;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  provider: {
+    id: number;
+    displayName: string;
+    averageRating: string | null;
+  } | null;
 };
 
 export type BookingApiItem = {
@@ -41,4 +70,5 @@ export type BookingApiItem = {
     fullName: string;
     email: string;
   } | null;
+  review: BookingReview | null;
 };
