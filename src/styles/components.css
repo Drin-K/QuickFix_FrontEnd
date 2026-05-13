@@ -752,6 +752,200 @@
   font-weight: 700;
 }
 
+.admin-dashboard {
+  min-height: calc(100vh - 180px);
+  padding-top: 3rem;
+}
+
+.admin-dashboard__hero h1 {
+  max-width: 13ch;
+}
+
+.admin-dashboard__summary p {
+  margin: 0;
+}
+
+.admin-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-kpi-card,
+.admin-activity-panel,
+.admin-dashboard-state {
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-kpi-card {
+  display: grid;
+  gap: 0.6rem;
+  min-height: 150px;
+  padding: 1.25rem;
+}
+
+.admin-kpi-card span {
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-kpi-card strong {
+  font-size: 2.35rem;
+  line-height: 1;
+}
+
+.admin-kpi-card p {
+  margin: 0;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.admin-kpi-card--success {
+  border-color: rgba(22, 163, 74, 0.2);
+  background:
+    linear-gradient(135deg, rgba(220, 252, 231, 0.48), rgba(255, 255, 255, 0.96)),
+    var(--color-surface);
+}
+
+.admin-kpi-card--warning {
+  border-color: rgba(234, 179, 8, 0.24);
+  background:
+    linear-gradient(135deg, rgba(254, 249, 195, 0.44), rgba(255, 255, 255, 0.96)),
+    var(--color-surface);
+}
+
+.admin-activity-panel {
+  margin-top: 1rem;
+  padding: 1.5rem;
+}
+
+.admin-activity-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-activity-panel__header h2 {
+  margin: 0;
+}
+
+.admin-activity-panel__header > span {
+  flex: 0 0 auto;
+  color: var(--color-muted);
+  font-weight: 800;
+}
+
+.admin-activity-list {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-activity-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(23, 50, 77, 0.08);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.admin-activity-item__marker {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 900;
+}
+
+.admin-activity-item h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.admin-activity-item p,
+.admin-activity-empty p,
+.admin-dashboard-state p {
+  color: var(--color-muted);
+}
+
+.admin-activity-item p {
+  margin: 0.35rem 0 0;
+}
+
+.admin-activity-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.admin-activity-item__meta span {
+  display: inline-flex;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(23, 50, 77, 0.06);
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.admin-activity-empty {
+  padding: 1rem;
+  border: 1px dashed rgba(23, 50, 77, 0.18);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.admin-activity-empty p {
+  margin-bottom: 0;
+}
+
+.admin-dashboard-state {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 52rem;
+  padding: 2rem;
+}
+
+.admin-dashboard-state h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.08;
+}
+
+.admin-dashboard-state p {
+  margin: 0;
+}
+
+.admin-dashboard-state .button {
+  justify-self: start;
+  margin-top: 0.25rem;
+  border: 0;
+  cursor: pointer;
+}
+
+.admin-dashboard-state--error {
+  border-color: rgba(214, 69, 69, 0.2);
+  background:
+    linear-gradient(135deg, rgba(254, 226, 226, 0.5), rgba(255, 255, 255, 0.96)),
+    var(--color-surface);
+}
+
 .provider-setup {
   padding-top: 3rem;
 }
@@ -1611,6 +1805,7 @@
 @media (max-width: 960px) {
   .navbar__inner,
   .navbar__actions,
+  .admin-activity-panel__header,
   .hero__actions,
   .cta-banner__actions,
   .page-placeholder__actions,
@@ -1631,6 +1826,7 @@
   .workspace-stats,
   .workspace-grid,
   .workspace-panel,
+  .admin-kpi-grid,
   .provider-setup__hero,
   .provider-setup__options,
   .provider-setup-details__grid,
@@ -1698,11 +1894,15 @@
   .workspace-hero,
   .workspace-action-card,
   .workspace-panel,
+  .admin-kpi-card,
+  .admin-activity-panel,
+  .admin-dashboard-state,
   .cta-banner {
     padding: 1.15rem;
   }
 
-  .workspace-hero h1 {
+  .workspace-hero h1,
+  .admin-dashboard__hero h1 {
     max-width: none;
   }
 

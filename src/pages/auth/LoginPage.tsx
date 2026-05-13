@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/api";
 import { AuthLayout } from "@/layouts/AuthLayout";
+import { routePaths } from "@/routes/routePaths";
 import { type AuthUserRole, login } from "@/services/auth.service";
 import { saveAuthSession } from "@/utils/auth";
 
@@ -38,14 +39,14 @@ const validateForm = (values: LoginFormState): LoginFormErrors => {
 const getPostLoginRoute = (role?: AuthUserRole): string => {
   switch (role) {
     case "provider":
-      return "/provider-home";
+      return routePaths.providerHome;
     case "admin":
     case "platform_admin":
-      return "/admin-home";
+      return routePaths.adminDashboard;
     case "client":
-      return "/client-home";
+      return routePaths.clientHome;
     default:
-      return "/";
+      return routePaths.home;
   }
 };
 
@@ -189,7 +190,8 @@ export const LoginPage = () => {
             </form>
 
             <p className="auth-card__footer">
-              Don&apos;t have an account yet? <Link to="/register">Create one here</Link>.
+              Don&apos;t have an account yet?{" "}
+              <Link to={routePaths.register}>Create one here</Link>.
             </p>
           </div>
         </div>

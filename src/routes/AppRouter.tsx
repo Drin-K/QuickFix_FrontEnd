@@ -3,7 +3,7 @@ import { PublicRoute } from "@/routes/PublicRoute";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { RoleRoute } from "@/routes/RoleRoute";
 import { routePaths } from "@/routes/routePaths";
-import { AdminHomePage } from "@/pages/admin/AdminHomePage";
+import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { ClientHomePage } from "@/pages/client/ClientHomePage";
@@ -150,7 +150,17 @@ export const AppRouter = () => {
         element={
           <ProtectedRoute>
             <RoleRoute allowedRoles={["admin", "platform_admin"]}>
-              <AdminHomePage />
+              <Navigate replace to={routePaths.adminDashboard} />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.adminDashboard}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin", "platform_admin"]}>
+              <AdminDashboardPage />
             </RoleRoute>
           </ProtectedRoute>
         }
