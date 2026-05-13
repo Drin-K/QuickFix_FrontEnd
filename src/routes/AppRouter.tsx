@@ -8,6 +8,7 @@ import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { ClientHomePage } from "@/pages/client/ClientHomePage";
 import { DashboardPage } from "@/pages/client/DashboardPage";
+import { FavoritesPage } from "@/pages/client/FavoritesPage";
 import { MyBookingsPage } from "@/pages/client/MyBookingsPage";
 import { ProviderHomePage } from "@/pages/provider/ProviderHomePage";
 import { AvailabilityPage } from "@/pages/provider/AvailabilityPage";
@@ -63,6 +64,16 @@ export const AppRouter = () => {
           <ProtectedRoute>
             <RoleRoute allowedRoles={["client"]}>
               <MyBookingsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.favorites}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["client"]}>
+              <FavoritesPage />
             </RoleRoute>
           </ProtectedRoute>
         }

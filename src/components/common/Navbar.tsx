@@ -43,6 +43,7 @@ export const Navbar = () => {
         { label: "Marketplace", to: routePaths.services },
         ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
         ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
+        ...(isClient ? [{ label: "Favorites", to: routePaths.favorites }] : []),
         ...(!isClient && !isProvider && !isAdmin && authenticated
           ? [{ label: "Dashboard", to: routePaths.dashboard }]
           : []),

@@ -4,6 +4,7 @@ import { ReviewsList } from "@/components/reviews/ReviewsList";
 import { PublicLayout } from "@/layouts/PublicLayout";
 import { routePaths } from "@/routes/routePaths";
 import { conversationService } from "@/services/conversation.service";
+import { favoriteService } from "@/services/favorite.service";
 import { getServiceById } from "@/services/service.service";
 import type { ServiceApiDetails } from "@/types/service.types";
 import { getAuthUser, isAuthenticated, setActiveTenantId } from "@/utils/auth";
@@ -31,10 +32,14 @@ export const ServiceDetailsPage = () => {
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
   const [conversationError, setConversationError] = useState("");
   const [isStartingConversation, setIsStartingConversation] = useState(false);
+  const [favoriteError, setFavoriteError] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
 
   const authUser = getAuthUser();
   const canBook = isAuthenticated() && authUser?.role === "client";
   const canStartConversation = canBook;
+  const canManageFavorites = canBook;
 
   useEffect(() => {
     const serviceId = Number(id);
@@ -65,6 +70,31 @@ export const ServiceDetailsPage = () => {
 
     void loadService();
   }, [id]);
+
+  useEffect(() => {
+    if (!canManageFavorites || !service?.provider.id) {
+      setIsFavorite(false);
+      return;
+    }
+
+    const loadFavorites = async () => {
+      try {
+        setFavoriteError("");
+        const response = await favoriteService.getMyFavorites();
+        setIsFavorite(
+          response.favorites.some((favorite) => favorite.providerId === service.provider.id),
+        );
+      } catch (error) {
+        if (error instanceof ApiError) {
+          setFavoriteError(error.message);
+        } else {
+          setFavoriteError("We could not load favorite status right now.");
+        }
+      }
+    };
+
+    void loadFavorites();
+  }, [canManageFavorites, service?.provider.id]);
 
   const handleBookingSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -101,6 +131,34 @@ export const ServiceDetailsPage = () => {
       }
     } finally {
       setIsSubmittingBooking(false);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!service?.provider) {
+      return;
+    }
+
+    try {
+      setFavoriteError("");
+      setIsFavoriteLoading(true);
+
+      if (isFavorite) {
+        await favoriteService.removeFavorite(service.provider.id);
+        setIsFavorite(false);
+        return;
+      }
+
+      await favoriteService.addFavorite(service.provider.id);
+      setIsFavorite(true);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setFavoriteError(error.message);
+      } else {
+        setFavoriteError("We could not update favorite status right now.");
+      }
+    } finally {
+      setIsFavoriteLoading(false);
     }
   };
 
@@ -193,17 +251,33 @@ export const ServiceDetailsPage = () => {
                     "Provider description will appear here when available."}
                 </p>
                 {canStartConversation ? (
-                  <button
-                    className="button service-details__message-button"
-                    disabled={isStartingConversation}
-                    type="button"
-                    onClick={() => void handleStartConversation()}
-                  >
-                    {isStartingConversation ? "Opening inbox..." : "Message provider"}
-                  </button>
+                  <div className="service-details__provider-actions">
+                    <button
+                      className="button service-details__message-button"
+                      disabled={isStartingConversation}
+                      type="button"
+                      onClick={() => void handleStartConversation()}
+                    >
+                      {isStartingConversation ? "Opening inbox..." : "Message provider"}
+                    </button>
+                    {canManageFavorites ? (
+                      <button
+                        className={`service-card__favorite ${isFavorite ? "service-card__favorite--active" : ""}`}
+                        disabled={isFavoriteLoading}
+                        type="button"
+                        onClick={() => void handleToggleFavorite()}
+                      >
+                        {isFavoriteLoading
+                          ? "Saving..."
+                          : isFavorite
+                            ? "Favorited"
+                            : "Add favorite"}
+                      </button>
+                    ) : null}
+                  </div>
                 ) : null}
-                {conversationError ? (
-                  <p className="auth-form__error">{conversationError}</p>
+                {conversationError || favoriteError ? (
+                  <p className="auth-form__error">{conversationError || favoriteError}</p>
                 ) : null}
               </div>
 
