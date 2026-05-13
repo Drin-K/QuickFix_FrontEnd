@@ -8,13 +8,14 @@ export const Navbar = () => {
   const authenticated = isAuthenticated();
   const isClient = authUser?.role === "client";
   const isProvider = authUser?.role === "provider";
+  const isAdmin = authUser?.role === "admin" || authUser?.role === "platform_admin";
   const homeRoute =
     authUser?.role === "client"
       ? routePaths.clientHome
       : authUser?.role === "provider"
         ? routePaths.providerHome
-        : authUser?.role === "admin" || authUser?.role === "platform_admin"
-          ? routePaths.adminHome
+        : isAdmin
+          ? routePaths.adminDashboard
           : routePaths.home;
 
   const navigationItems = isProvider
@@ -32,12 +33,17 @@ export const Navbar = () => {
           : []),
         ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
       ]
+    : isAdmin
+      ? [
+          { label: "Dashboard", to: routePaths.adminDashboard },
+          ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
+        ]
     : [
         { label: "Home", to: homeRoute },
         { label: "Marketplace", to: routePaths.services },
         ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
         ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
-        ...(!isClient && !isProvider && authenticated
+        ...(!isClient && !isProvider && !isAdmin && authenticated
           ? [{ label: "Dashboard", to: routePaths.dashboard }]
           : []),
       ];

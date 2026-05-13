@@ -76,7 +76,7 @@ const getDashboardRoute = (role: AuthUserRole | undefined) => {
       return routePaths.providerHome;
     case "admin":
     case "platform_admin":
-      return routePaths.adminHome;
+      return routePaths.adminDashboard;
     case "client":
       return routePaths.clientHome;
     default:
