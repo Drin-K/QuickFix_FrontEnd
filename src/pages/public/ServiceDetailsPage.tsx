@@ -1,5 +1,6 @@
 import { ApiError } from "@/api/api";
 import { createBooking } from "@/services/booking.service";
+import { ReviewsList } from "@/components/reviews/ReviewsList";
 import { PublicLayout } from "@/layouts/PublicLayout";
 import { routePaths } from "@/routes/routePaths";
 import { conversationService } from "@/services/conversation.service";
@@ -230,6 +231,8 @@ export const ServiceDetailsPage = () => {
                 <li>Status: {service.isActive ? "Active" : "Inactive"}</li>
               </ul>
             </div>
+
+            <ReviewsList providerId={service.provider.id} />
 
             <aside className="service-details__sidebar">
               <div className="service-details__meta-card">
