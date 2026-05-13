@@ -4,6 +4,7 @@ import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { RoleRoute } from "@/routes/RoleRoute";
 import { routePaths } from "@/routes/routePaths";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
+import { AdminProvidersPage } from "@/pages/admin/AdminProvidersPage";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { ClientHomePage } from "@/pages/client/ClientHomePage";
@@ -172,6 +173,16 @@ export const AppRouter = () => {
           <ProtectedRoute>
             <RoleRoute allowedRoles={["admin", "platform_admin"]}>
               <AdminDashboardPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routePaths.adminProviders}
+        element={
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={["admin", "platform_admin"]}>
+              <AdminProvidersPage />
             </RoleRoute>
           </ProtectedRoute>
         }

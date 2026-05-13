@@ -36,6 +36,7 @@ export const Navbar = () => {
     : isAdmin
       ? [
           { label: "Dashboard", to: routePaths.adminDashboard },
+          { label: "Providers", to: routePaths.adminProviders },
           ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
         ]
     : [

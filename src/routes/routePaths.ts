@@ -17,6 +17,7 @@ export const routePaths = {
   providerVerification: "/provider/verification",
   adminHome: "/admin-home",
   adminDashboard: "/admin/dashboard",
+  adminProviders: "/admin/providers",
   dashboard: "/dashboard",
   serviceDetails: "/services/:id",
 } as const;
