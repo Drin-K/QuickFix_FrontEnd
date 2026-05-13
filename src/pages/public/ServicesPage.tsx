@@ -6,6 +6,7 @@ import { ProviderLayout } from "@/layouts/ProviderLayout";
 import { routePaths } from "@/routes/routePaths";
 import type { AuthUserRole } from "@/services/auth.service";
 import { conversationService } from "@/services/conversation.service";
+import { favoriteService } from "@/services/favorite.service";
 import { getCategories, getServices } from "@/services/service.service";
 import type { ServiceApiCategory, ServiceApiListItem } from "@/types/service.types";
 import { getAuthUser, isAuthenticated } from "@/utils/auth";
@@ -29,10 +30,16 @@ const ServicesPageContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [conversationError, setConversationError] = useState("");
+  const [favoriteError, setFavoriteError] = useState("");
+  const [favoriteProviderIds, setFavoriteProviderIds] = useState<number[]>([]);
   const [startingConversationServiceId, setStartingConversationServiceId] = useState<
     number | null
   >(null);
+  const [pendingFavoriteProviderId, setPendingFavoriteProviderId] = useState<number | null>(
+    null,
+  );
   const canStartConversation = isAuthenticated() && authUser?.role === "client";
+  const canManageFavorites = canStartConversation;
 
   useEffect(() => {
     const loadServices = async () => {
@@ -64,6 +71,29 @@ const ServicesPageContent = () => {
     void loadServices();
   }, []);
 
+  useEffect(() => {
+    if (!canManageFavorites) {
+      setFavoriteProviderIds([]);
+      return;
+    }
+
+    const loadFavorites = async () => {
+      try {
+        setFavoriteError("");
+        const response = await favoriteService.getMyFavorites();
+        setFavoriteProviderIds(response.favorites.map((favorite) => favorite.providerId));
+      } catch (error) {
+        if (error instanceof ApiError) {
+          setFavoriteError(error.message);
+        } else {
+          setFavoriteError("We could not load favorite providers right now.");
+        }
+      }
+    };
+
+    void loadFavorites();
+  }, [canManageFavorites]);
+
   const handleStartConversation = async (serviceId: number) => {
     if (!canStartConversation) {
       navigate(routePaths.login);
@@ -83,6 +113,32 @@ const ServicesPageContent = () => {
       }
     } finally {
       setStartingConversationServiceId(null);
+    }
+  };
+
+  const handleToggleFavorite = async (providerId: number) => {
+    try {
+      setFavoriteError("");
+      setPendingFavoriteProviderId(providerId);
+
+      if (favoriteProviderIds.includes(providerId)) {
+        await favoriteService.removeFavorite(providerId);
+        setFavoriteProviderIds((current) =>
+          current.filter((currentProviderId) => currentProviderId !== providerId),
+        );
+        return;
+      }
+
+      await favoriteService.addFavorite(providerId);
+      setFavoriteProviderIds((current) => [...current, providerId]);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setFavoriteError(error.message);
+      } else {
+        setFavoriteError("We could not update favorites right now.");
+      }
+    } finally {
+      setPendingFavoriteProviderId(null);
     }
   };
 
@@ -167,6 +223,11 @@ const ServicesPageContent = () => {
             {conversationError}
           </div>
         ) : null}
+        {favoriteError ? (
+          <div className="services-page__notice" role="alert">
+            {favoriteError}
+          </div>
+        ) : null}
 
         {!errorMessage && services.length === 0 ? (
           <div className="services-page__hero">
@@ -178,44 +239,65 @@ const ServicesPageContent = () => {
 
         {!errorMessage && services.length > 0 ? (
           <div className="services-grid">
-            {services.map((service) => (
-              <article key={service.id} className="service-card service-card--interactive">
-                <div className="service-card__icon" aria-hidden="true">
-                  {service.category?.name?.slice(0, 1) ?? "S"}
-                </div>
-                <h3>{service.title}</h3>
-                <p>
-                  {service.description ??
-                    "No description is available yet for this service."}
-                </p>
-                <span className="services-page__meta">
-                  {service.provider?.displayName ?? "Provider information unavailable"}
-                </span>
-                <span className="services-page__status">
-                  {service.category?.name ?? "Uncategorized"} - EUR {service.basePrice}
-                </span>
-                <div className="service-card__actions">
-                  <Link
-                    className="service-card__link"
-                    to={`${routePaths.services}/${service.id}`}
-                  >
-                    View service details
-                  </Link>
-                  {canStartConversation && service.provider ? (
-                    <button
-                      className="service-card__message"
-                      disabled={startingConversationServiceId === service.id}
-                      type="button"
-                      onClick={() => void handleStartConversation(service.id)}
+            {services.map((service) => {
+              const providerId = service.provider?.id ?? null;
+              const isFavorite = providerId !== null && favoriteProviderIds.includes(providerId);
+
+              return (
+                <article key={service.id} className="service-card service-card--interactive">
+                  <div className="service-card__icon" aria-hidden="true">
+                    {service.category?.name?.slice(0, 1) ?? "S"}
+                  </div>
+                  <h3>{service.title}</h3>
+                  <p>
+                    {service.description ??
+                      "No description is available yet for this service."}
+                  </p>
+                  <span className="services-page__meta">
+                    {service.provider?.displayName ?? "Provider information unavailable"}
+                  </span>
+                  <span className="services-page__status">
+                    {service.category?.name ?? "Uncategorized"} - EUR {service.basePrice}
+                  </span>
+                  <div className="service-card__actions">
+                    <Link
+                      className="service-card__link"
+                      to={`${routePaths.services}/${service.id}`}
                     >
-                      {startingConversationServiceId === service.id
-                        ? "Opening..."
-                        : "Message provider"}
-                    </button>
-                  ) : null}
-                </div>
-              </article>
-            ))}
+                      View service details
+                    </Link>
+                    {canManageFavorites && providerId !== null ? (
+                      <button
+                        className={`service-card__favorite ${
+                          isFavorite ? "service-card__favorite--active" : ""
+                        }`}
+                        disabled={pendingFavoriteProviderId === providerId}
+                        type="button"
+                        onClick={() => void handleToggleFavorite(providerId)}
+                      >
+                        {pendingFavoriteProviderId === providerId
+                          ? "Saving..."
+                          : isFavorite
+                            ? "Favorited"
+                            : "Add favorite"}
+                      </button>
+                    ) : null}
+                    {canStartConversation && service.provider ? (
+                      <button
+                        className="service-card__message"
+                        disabled={startingConversationServiceId === service.id}
+                        type="button"
+                        onClick={() => void handleStartConversation(service.id)}
+                      >
+                        {startingConversationServiceId === service.id
+                          ? "Opening..."
+                          : "Message provider"}
+                      </button>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         ) : null}
       </div>

@@ -23,6 +23,12 @@ const clientActions = [
     to: routePaths.myBookings,
   },
   {
+    title: "Save favorites",
+    description: "Keep trusted providers nearby so you can book them again quickly.",
+    label: "View favorites",
+    to: routePaths.favorites,
+  },
+  {
     title: "Keep profile ready",
     description: "Make sure your account details are ready before the next request.",
     label: "Open profile",
@@ -53,6 +59,9 @@ export const ClientHomePage = () => {
                 </NavLink>
                 <NavLink className="button button--ghost" to={routePaths.myBookings}>
                   My bookings
+                </NavLink>
+                <NavLink className="button button--ghost" to={routePaths.favorites}>
+                  Favorites
                 </NavLink>
               </div>
             </div>

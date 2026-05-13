@@ -406,6 +406,42 @@
   opacity: 0.7;
 }
 
+.service-card__favorite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.55rem;
+  padding: 0.65rem 0.95rem;
+  border: 1px solid rgba(23, 50, 77, 0.14);
+  border-radius: 999px;
+  background: rgba(23, 50, 77, 0.04);
+  color: var(--color-primary);
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.service-card__favorite:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(180, 83, 9, 0.24);
+  background: rgba(251, 191, 36, 0.16);
+}
+
+.service-card__favorite:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.service-card__favorite--active {
+  border-color: rgba(180, 83, 9, 0.3);
+  background: rgba(251, 191, 36, 0.2);
+  color: #92400e;
+}
+
 .step-card__number {
   display: inline-block;
   margin-bottom: 1rem;
@@ -1532,6 +1568,69 @@
   background: rgba(255, 241, 242, 0.88);
   color: #9f1239;
   font-weight: 700;
+}
+
+.favorites-page__empty,
+.favorite-provider-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.favorites-page__empty {
+  padding: 1.5rem;
+}
+
+.favorites-page__grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.favorite-provider-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.favorite-provider-card__header,
+.favorite-provider-card__meta,
+.favorite-provider-card__actions,
+.service-details__provider-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.favorite-provider-card__meta {
+  align-items: stretch;
+}
+
+.favorite-provider-card__meta div {
+  min-width: 10rem;
+}
+
+.favorite-provider-card__meta strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.favorite-provider-card__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.15rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(23, 50, 77, 0.08);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.favorite-provider-card__badge--verified {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
 }
 
 .service-details {
