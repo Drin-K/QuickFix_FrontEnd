@@ -1619,6 +1619,8 @@
 }
 
 .service-details__sidebar {
+  grid-column: 2 / 3;
+  grid-row: 1 / span 2;
   display: grid;
   gap: 1rem;
 }
@@ -1631,6 +1633,108 @@
 .service-details__meta-list strong {
   display: block;
   margin-bottom: 0.25rem;
+}
+
+.reviews-panel,
+.review-card {
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.reviews-panel {
+  grid-column: 1 / 2;
+}
+
+.reviews-panel__header,
+.review-card__header,
+.reviews-panel__summary {
+  display: flex;
+  gap: 1rem;
+}
+
+.reviews-panel__header,
+.review-card__header {
+  justify-content: space-between;
+}
+
+.reviews-panel__header {
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.reviews-panel__header p,
+.reviews-panel__empty p,
+.review-card p,
+.review-card__header span:last-child,
+.reviews-panel__summary span {
+  color: var(--color-muted);
+}
+
+.reviews-panel__summary {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.reviews-panel__summary div {
+  min-width: 110px;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  border-radius: 0.85rem;
+  background: rgba(45, 212, 191, 0.08);
+}
+
+.reviews-panel__summary strong {
+  display: block;
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.reviews-panel__summary span {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.reviews-panel__list {
+  display: grid;
+  gap: 1rem;
+}
+
+.reviews-panel__empty {
+  padding: 1rem 1.1rem;
+  border: 1px dashed rgba(23, 50, 77, 0.12);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.reviews-panel__empty strong {
+  display: block;
+}
+
+.review-card {
+  padding: 1rem 1.1rem;
+}
+
+.review-card__header {
+  align-items: center;
+  margin-bottom: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.review-card__rating {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--color-accent);
+  font-weight: 800;
+}
+
+.review-card p {
+  margin: 0;
 }
 
 .my-services-page {
