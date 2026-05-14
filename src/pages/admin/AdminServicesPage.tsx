@@ -1,38 +1,50 @@
-import { ServicesOverviewSection } from "@/components/services/ServicesOverviewSection";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ApiError } from "@/api/api";
 import { AdminLayout } from "@/layouts/AdminLayout";
+import { routePaths } from "@/routes/routePaths";
+import {
+  adminService,
+  type AdminService,
+  type AdminServiceStatus,
+  type AdminServicesQuery,
+} from "@/services/admin.service";
+import { clearAuthSession } from "@/utils/auth";
 
-const adminServices = [
-  {
-    title: "Marketplace overview",
-    description: "Monitor all service categories and verify what is visible across tenants.",
-    meta: "System-wide visibility",
-    status: "Healthy",
-  },
-  {
-    title: "Review flagged services",
-    description: "Inspect services that may require moderation, edits, or deactivation.",
-    meta: "Moderation queue",
-    status: "2 pending review",
-  },
-  {
-    title: "Category governance",
-    description: "Keep category structure aligned and prepare the next admin management flow.",
-    meta: "Admin control area",
-    status: "In progress",
-  },
-];
+type StatusFilter = "all" | AdminServiceStatus;
+
+const formatDate = (value?: string) => {
+  if (!value) {
+    return "Not available";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+};
+
+const formatPrice = (value: string) => {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
+    return value;
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "EUR",
+  }).format(amount);
+};
 
 export const AdminServicesPage = () => {
-<<<<<<< Updated upstream
-  return (
-    <AdminLayout>
-      <ServicesOverviewSection
-        eyebrow="Admin services"
-        title="Monitor services across the marketplace."
-        description="Admins see a system-level overview for moderation, governance, and service visibility."
-        records={adminServices}
-      />
-=======
   const navigate = useNavigate();
   const [services, setServices] = useState<AdminService[]>([]);
   const [filterOptions, setFilterOptions] = useState<AdminService[]>([]);
@@ -413,7 +425,6 @@ export const AdminServicesPage = () => {
           ) : null}
         </div>
       </section>
->>>>>>> Stashed changes
     </AdminLayout>
   );
 };

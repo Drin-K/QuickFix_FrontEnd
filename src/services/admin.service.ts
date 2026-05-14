@@ -50,8 +50,6 @@ export type AdminProvidersResponse = {
   total: number;
 };
 
-<<<<<<< Updated upstream
-=======
 export type AdminServiceStatus = "active" | "inactive";
 
 export type AdminServicesQuery = {
@@ -91,7 +89,6 @@ export type AdminServiceActionResponse = {
   service: AdminService;
 };
 
->>>>>>> Stashed changes
 type AdminDashboardStatsApiResponse =
   | AdminDashboardStats
   | {
@@ -114,8 +111,6 @@ type AdminProvidersApiResponse =
       count?: unknown;
     };
 
-<<<<<<< Updated upstream
-=======
 type AdminServicesApiResponse =
   | unknown[]
   | {
@@ -134,9 +129,9 @@ type AdminServiceActionApiResponse =
       data?: unknown | { message?: unknown; service?: unknown };
     };
 
->>>>>>> Stashed changes
 const ADMIN_DASHBOARD_STATS_ENDPOINT = "/admin/dashboard/stats";
 const ADMIN_PROVIDERS_ENDPOINT = "/admin/providers";
+const ADMIN_SERVICES_ENDPOINT = "/admin/services";
 
 const emptyStats: AdminDashboardStats = {
   totalProviders: 0,
@@ -484,8 +479,6 @@ const normalizeProvidersResponse = (
   };
 };
 
-<<<<<<< Updated upstream
-=======
 const normalizeServiceStatus = (source: Record<string, unknown>): AdminServiceStatus => {
   const rawStatus = readString(source, ["status", "serviceStatus"])?.toLowerCase();
 
@@ -620,7 +613,6 @@ const normalizeServiceActionResponse = (
   };
 };
 
->>>>>>> Stashed changes
 export const getAdminProviders = async (
   query: AdminProvidersQuery = {},
 ): Promise<AdminProvidersResponse> => {
@@ -637,11 +629,6 @@ export const getAdminProviders = async (
   return normalizeProvidersResponse(response);
 };
 
-<<<<<<< Updated upstream
-export const adminService = {
-  getDashboardStats: getAdminDashboardStats,
-  getProviders: getAdminProviders,
-=======
 export const getAdminServices = async (
   query: AdminServicesQuery = {},
 ): Promise<AdminServicesResponse> => {
@@ -697,5 +684,4 @@ export const adminService = {
   getServices: getAdminServices,
   deactivateService: deactivateAdminService,
   reactivateService: reactivateAdminService,
->>>>>>> Stashed changes
 };
