@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/api";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { routePaths } from "@/routes/routePaths";
@@ -244,6 +244,7 @@ export const AdminProvidersPage = () => {
                         <th>Services</th>
                         <th>Documents</th>
                         <th>Created</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -273,6 +274,17 @@ export const AdminProvidersPage = () => {
                           <td>{provider.servicesCount ?? 0}</td>
                           <td>{provider.documentsCount ?? 0}</td>
                           <td>{formatDate(provider.createdAt)}</td>
+                          <td className="admin-providers-table__actions">
+                            <Link
+                              className="button button--ghost admin-provider-details-link"
+                              to={routePaths.adminProviderDetails.replace(
+                                ":id",
+                                encodeURIComponent(String(provider.id)),
+                              )}
+                            >
+                              View details
+                            </Link>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
