@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError } from "@/api/api";
 import { ProviderLayout } from "@/layouts/ProviderLayout";
 import {
@@ -29,7 +29,7 @@ export const AvailabilityPage = () => {
     return start.getTime() < end.getTime();
   }, [endTime, startTime]);
 
-  const loadSlots = async () => {
+  const loadSlots = useCallback(async () => {
     setLoading(true);
     setErrorMessage(null);
 
@@ -47,11 +47,11 @@ export const AvailabilityPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     void loadSlots();
-  }, []);
+  }, [loadSlots]);
 
   const handleCreate = async (event: React.FormEvent) => {
     event.preventDefault();

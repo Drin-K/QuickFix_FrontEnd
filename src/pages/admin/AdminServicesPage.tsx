@@ -6,8 +6,8 @@ import { routePaths } from "@/routes/routePaths";
 import {
   adminService,
   type AdminService,
-  type AdminServicesQuery,
   type AdminServiceStatus,
+  type AdminServicesQuery,
 } from "@/services/admin.service";
 import { clearAuthSession } from "@/utils/auth";
 
@@ -32,16 +32,16 @@ const formatDate = (value?: string) => {
 };
 
 const formatPrice = (value: string) => {
-  const parsedValue = Number(value);
+  const amount = Number(value);
 
-  if (!Number.isFinite(parsedValue)) {
+  if (!Number.isFinite(amount)) {
     return value;
   }
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "EUR",
-  }).format(parsedValue);
+  }).format(amount);
 };
 
 export const AdminServicesPage = () => {
@@ -56,6 +56,11 @@ export const AdminServicesPage = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [updatingServiceId, setUpdatingServiceId] = useState<string | number | null>(
+    null,
+  );
 
   const filters = useMemo<AdminServicesQuery>(
     () => ({
@@ -152,6 +157,54 @@ export const AdminServicesPage = () => {
     setProviderFilter("all");
     setCategoryFilter("all");
     setStatusFilter("all");
+    setActionMessage(null);
+    setActionError(null);
+  };
+
+  const replaceServiceInState = (updatedService: AdminService) => {
+    setServices((currentServices) =>
+      currentServices.map((service) =>
+        String(service.id) === String(updatedService.id) ? updatedService : service,
+      ),
+    );
+    setFilterOptions((currentServices) =>
+      currentServices.map((service) =>
+        String(service.id) === String(updatedService.id) ? updatedService : service,
+      ),
+    );
+  };
+
+  const handleServiceStatusAction = async (serviceItem: AdminService) => {
+    setUpdatingServiceId(serviceItem.id);
+    setActionMessage(null);
+    setActionError(null);
+
+    try {
+      const response = serviceItem.isActive
+        ? await adminService.deactivateService(serviceItem.id)
+        : await adminService.reactivateService(serviceItem.id);
+
+      replaceServiceInState(response.service);
+      setActionMessage(response.message);
+      await loadServices(filters);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearAuthSession();
+        navigate(routePaths.login);
+        return;
+      }
+
+      if (error instanceof ApiError && error.status === 403) {
+        setActionError("Only admins can update services.");
+        return;
+      }
+
+      setActionError(
+        error instanceof Error ? error.message : "Service status could not be updated.",
+      );
+    } finally {
+      setUpdatingServiceId(null);
+    }
   };
 
   const activeFilterCount = [
@@ -266,6 +319,20 @@ export const AdminServicesPage = () => {
             </div>
           ) : null}
 
+          {actionMessage && !errorMessage ? (
+            <div className="admin-providers-state">
+              <strong>Service updated.</strong>
+              <p>{actionMessage}</p>
+            </div>
+          ) : null}
+
+          {actionError && !errorMessage ? (
+            <div className="admin-providers-state admin-providers-state--error">
+              <strong>Service could not be updated.</strong>
+              <p>{actionError}</p>
+            </div>
+          ) : null}
+
           {!errorMessage ? (
             <div className="admin-providers-panel">
               <div className="admin-providers-panel__header">
@@ -298,6 +365,7 @@ export const AdminServicesPage = () => {
                         <th>Status</th>
                         <th>Price</th>
                         <th>Created</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -331,6 +399,22 @@ export const AdminServicesPage = () => {
                           </td>
                           <td>{formatPrice(service.basePrice)}</td>
                           <td>{formatDate(service.createdAt)}</td>
+                          <td>
+                            <button
+                              className="button button--ghost"
+                              type="button"
+                              disabled={String(updatingServiceId) === String(service.id)}
+                              onClick={() => {
+                                void handleServiceStatusAction(service);
+                              }}
+                            >
+                              {String(updatingServiceId) === String(service.id)
+                                ? "Saving..."
+                                : service.isActive
+                                  ? "Deactivate"
+                                  : "Reactivate"}
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

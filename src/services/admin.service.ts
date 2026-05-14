@@ -84,6 +84,11 @@ export type AdminServicesResponse = {
   total: number;
 };
 
+export type AdminServiceActionResponse = {
+  message: string;
+  service: AdminService;
+};
+
 type AdminDashboardStatsApiResponse =
   | AdminDashboardStats
   | {
@@ -114,6 +119,14 @@ type AdminServicesApiResponse =
       items?: unknown[];
       total?: unknown;
       count?: unknown;
+    };
+
+type AdminServiceActionApiResponse =
+  | unknown
+  | {
+      message?: unknown;
+      service?: unknown;
+      data?: unknown | { message?: unknown; service?: unknown };
     };
 
 const ADMIN_DASHBOARD_STATS_ENDPOINT = "/admin/dashboard/stats";
@@ -580,6 +593,26 @@ const normalizeServicesResponse = (
   };
 };
 
+const normalizeServiceActionResponse = (
+  response: AdminServiceActionApiResponse,
+  fallbackMessage: string,
+): AdminServiceActionResponse => {
+  const source = isRecord(response) ? response : {};
+  const data = source.data;
+  const nestedSource = isRecord(data) ? data : source;
+  const servicePayload = nestedSource.service ?? data ?? response;
+  const service = normalizeServiceItem(servicePayload, 0);
+
+  if (!service) {
+    throw new Error("Service action response could not be read.");
+  }
+
+  return {
+    message: readString(nestedSource, ["message"]) ?? fallbackMessage,
+    service,
+  };
+};
+
 export const getAdminProviders = async (
   query: AdminProvidersQuery = {},
 ): Promise<AdminProvidersResponse> => {
@@ -613,8 +646,42 @@ export const getAdminServices = async (
   return normalizeServicesResponse(response);
 };
 
+export const deactivateAdminService = async (
+  serviceId: string | number,
+): Promise<AdminServiceActionResponse> => {
+  const response = await api.patch<AdminServiceActionApiResponse>(
+    `${ADMIN_SERVICES_ENDPOINT}/${serviceId}/deactivate`,
+    {
+      requireAuth: true,
+    },
+  );
+
+  return normalizeServiceActionResponse(
+    response,
+    "Service deactivated successfully.",
+  );
+};
+
+export const reactivateAdminService = async (
+  serviceId: string | number,
+): Promise<AdminServiceActionResponse> => {
+  const response = await api.patch<AdminServiceActionApiResponse>(
+    `${ADMIN_SERVICES_ENDPOINT}/${serviceId}/reactivate`,
+    {
+      requireAuth: true,
+    },
+  );
+
+  return normalizeServiceActionResponse(
+    response,
+    "Service reactivated successfully.",
+  );
+};
+
 export const adminService = {
   getDashboardStats: getAdminDashboardStats,
   getProviders: getAdminProviders,
   getServices: getAdminServices,
+  deactivateService: deactivateAdminService,
+  reactivateService: reactivateAdminService,
 };
