@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "@/api/api";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -84,31 +84,69 @@ const formatVerificationStatus = (verification: AdminProviderDetails["verificati
 const formatDocumentStatus = (document: AdminProviderDetails["documents"][number]) =>
   document.isVerified ? "Verified" : "Pending review";
 
+const providerVerificationActionKey = (action: "verify" | "unverify") =>
+  `provider-${action}`;
+
+const documentVerificationActionKey = (
+  documentId: string | number,
+  action: "verify" | "unverify",
+) => `document-${String(documentId)}-${action}`;
+
 export const AdminProviderDetailsPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [providerDetails, setProviderDetails] = useState<AdminProviderDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const loadedProviderIdRef = useRef<number | null>(null);
 
   const providerId = Number(id);
   const hasValidProviderId = Number.isInteger(providerId) && providerId > 0;
 
   useEffect(() => {
     if (!hasValidProviderId) {
+      loadedProviderIdRef.current = null;
+      setProviderDetails(null);
       setErrorMessage("The requested provider id is invalid.");
       setIsLoading(false);
+      setIsRefreshing(false);
       return;
     }
 
+    let isActive = true;
+
     const loadProviderDetails = async () => {
-      setIsLoading(true);
+      const isInitialLoad = loadedProviderIdRef.current !== providerId;
+
+      if (isInitialLoad) {
+        setProviderDetails(null);
+        setActionMessage(null);
+        setActionError(null);
+        setIsLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+
       setErrorMessage(null);
 
       try {
         const response = await adminService.getProviderDetails(providerId);
+        if (!isActive) {
+          return;
+        }
+
         setProviderDetails(response);
+        loadedProviderIdRef.current = providerId;
       } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
         if (error instanceof ApiError && error.status === 401) {
           clearAuthSession();
           navigate(routePaths.login);
@@ -116,25 +154,99 @@ export const AdminProviderDetailsPage = () => {
         }
 
         if (error instanceof ApiError && error.status === 403) {
-          setErrorMessage("Only admins can view provider details.");
+          if (isInitialLoad) {
+            setErrorMessage("Only admins can view provider details.");
+            setProviderDetails(null);
+          } else {
+            setActionError("Only admins can update provider verification.");
+          }
           return;
         }
 
         if (error instanceof ApiError && error.status === 404) {
-          setErrorMessage("Provider not found.");
+          if (isInitialLoad) {
+            setErrorMessage("Provider not found.");
+            setProviderDetails(null);
+          } else {
+            setActionError("The provider details could not be refreshed.");
+          }
           return;
         }
 
-        setErrorMessage(
-          error instanceof Error ? error.message : "Provider details could not be loaded.",
-        );
+        const message =
+          error instanceof Error ? error.message : "Provider details could not be loaded.";
+
+        if (isInitialLoad) {
+          setErrorMessage(message);
+          setProviderDetails(null);
+        } else {
+          setActionError(message);
+        }
       } finally {
-        setIsLoading(false);
+        if (isActive) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
       }
     };
 
     void loadProviderDetails();
-  }, [hasValidProviderId, navigate, providerId]);
+    return () => {
+      isActive = false;
+    };
+  }, [hasValidProviderId, navigate, providerId, refreshKey]);
+
+  const performVerificationAction = async ({
+    actionKey,
+    confirmationMessage,
+    successFallbackMessage,
+    failureFallbackMessage,
+    forbiddenMessage,
+    notFoundMessage,
+    action,
+  }: {
+    actionKey: string;
+    confirmationMessage: string;
+    successFallbackMessage: string;
+    failureFallbackMessage: string;
+    forbiddenMessage: string;
+    notFoundMessage: string;
+    action: () => Promise<{ message: string }>;
+  }) => {
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    setPendingAction(actionKey);
+    setActionMessage(null);
+    setActionError(null);
+
+    try {
+      const response = await action();
+      setActionMessage(response.message || successFallbackMessage);
+      setRefreshKey((current) => current + 1);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearAuthSession();
+        navigate(routePaths.login);
+        return;
+      }
+
+      if (error instanceof ApiError && error.status === 403) {
+        setActionError(forbiddenMessage);
+        return;
+      }
+
+      if (error instanceof ApiError && error.status === 404) {
+        setActionError(notFoundMessage);
+        return;
+      }
+
+      setActionError(error instanceof Error ? error.message : failureFallbackMessage);
+    } finally {
+      setPendingAction(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -173,6 +285,16 @@ export const AdminProviderDetailsPage = () => {
 
   const { provider, companyDetails, individualDetails, documents, servicesSummary, verification } =
     providerDetails;
+  const providerActionKey = providerVerificationActionKey(
+    verification.isVerified ? "unverify" : "verify",
+  );
+  const providerActionLabel = verification.isVerified
+    ? pendingAction === providerVerificationActionKey("unverify")
+      ? "Unverifying provider..."
+      : "Unverify provider"
+    : pendingAction === providerVerificationActionKey("verify")
+      ? "Verifying provider..."
+      : "Verify provider";
   const detailItems =
     provider.type === "company"
       ? [
@@ -205,6 +327,8 @@ export const AdminProviderDetailsPage = () => {
   const verificationLabel = formatVerificationStatus(verification);
   const documentSummary = `${verification.submittedDocuments} document(s)`;
   const serviceSummary = `${servicesSummary.totalServices} service(s)`;
+  const hasActionFeedback = Boolean(actionMessage || actionError || isRefreshing);
+  const isActionPending = pendingAction !== null || isRefreshing;
 
   return (
     <AdminLayout>
@@ -232,6 +356,28 @@ export const AdminProviderDetailsPage = () => {
               </p>
             </aside>
           </div>
+
+          {hasActionFeedback ? (
+            <div className="admin-provider-details__feedback" aria-live="polite">
+              {isRefreshing ? (
+                <div className="admin-provider-details__feedback-item admin-provider-details__feedback-item--info">
+                  Refreshing provider details after the latest verification change.
+                </div>
+              ) : null}
+
+              {actionMessage ? (
+                <div className="admin-provider-details__feedback-item admin-provider-details__feedback-item--success">
+                  {actionMessage}
+                </div>
+              ) : null}
+
+              {actionError ? (
+                <div className="admin-provider-details__feedback-item admin-provider-details__feedback-item--error">
+                  {actionError}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="service-details__content" style={{ marginTop: "1rem" }}>
             <div className="service-details__panel">
@@ -310,7 +456,59 @@ export const AdminProviderDetailsPage = () => {
                     <strong>Setup complete</strong>
                     <span>{verification.isSetupComplete ? "Yes" : "No"}</span>
                   </div>
+                  {verification.reviewedBy ? (
+                    <div>
+                      <strong>Reviewed by</strong>
+                      <span>{verification.reviewedBy}</span>
+                    </div>
+                  ) : null}
+                  {verification.reviewedAt ? (
+                    <div>
+                      <strong>Reviewed at</strong>
+                      <span>{formatDate(verification.reviewedAt)}</span>
+                    </div>
+                  ) : null}
+                  {verification.notes ? (
+                    <div>
+                      <strong>Notes</strong>
+                      <span>{verification.notes}</span>
+                    </div>
+                  ) : null}
                 </div>
+
+                <div className="admin-provider-details__actions">
+                  <button
+                    className={verification.isVerified ? "button button--light" : "button"}
+                    disabled={isActionPending}
+                    type="button"
+                    onClick={() => {
+                      void performVerificationAction({
+                        actionKey: providerActionKey,
+                        confirmationMessage: verification.isVerified
+                          ? "Remove verification from this provider?"
+                          : "Verify this provider?",
+                        successFallbackMessage: verification.isVerified
+                          ? "Provider unverified successfully."
+                          : "Provider verified successfully.",
+                        failureFallbackMessage: verification.isVerified
+                          ? "The provider could not be unverified."
+                          : "The provider could not be verified.",
+                        forbiddenMessage: "Only admins can update provider verification.",
+                        notFoundMessage: "Provider not found.",
+                        action: () =>
+                          verification.isVerified
+                            ? adminService.unverifyProvider(provider.id)
+                            : adminService.verifyProvider(provider.id),
+                      });
+                    }}
+                  >
+                    {providerActionLabel}
+                  </button>
+                </div>
+
+                <p className="admin-provider-details__helper">
+                  Only admins can update provider verification.
+                </p>
               </div>
 
               <div className="service-details__meta-card">
@@ -403,6 +601,7 @@ export const AdminProviderDetailsPage = () => {
                       <th>Status</th>
                       <th>Submitted</th>
                       <th>File</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -428,6 +627,51 @@ export const AdminProviderDetailsPage = () => {
                           <a className="button button--ghost" href={document.fileUrl} target="_blank" rel="noreferrer">
                             Open file
                           </a>
+                        </td>
+                        <td>
+                          <div className="admin-provider-documents__actions">
+                            <button
+                              className={
+                                document.isVerified ? "button button--light" : "button"
+                              }
+                              disabled={isActionPending}
+                              type="button"
+                              onClick={() => {
+                                void performVerificationAction({
+                                  actionKey: documentVerificationActionKey(
+                                    document.id,
+                                    document.isVerified ? "unverify" : "verify",
+                                  ),
+                                  confirmationMessage: document.isVerified
+                                    ? `Remove verification from ${document.documentType}?`
+                                    : `Verify ${document.documentType}?`,
+                                  successFallbackMessage: document.isVerified
+                                    ? "Document unverified successfully."
+                                    : "Document verified successfully.",
+                                  failureFallbackMessage: document.isVerified
+                                    ? "The document could not be unverified."
+                                    : "The document could not be verified.",
+                                  forbiddenMessage:
+                                    "Only admins can update document verification.",
+                                  notFoundMessage: "Document not found.",
+                                  action: () =>
+                                    document.isVerified
+                                      ? adminService.unverifyProviderDocument(document.id)
+                                      : adminService.verifyProviderDocument(document.id),
+                                });
+                              }}
+                            >
+                              {document.isVerified
+                                ? pendingAction ===
+                                  documentVerificationActionKey(document.id, "unverify")
+                                  ? "Unverifying..."
+                                  : "Unverify document"
+                                : pendingAction ===
+                                    documentVerificationActionKey(document.id, "verify")
+                                  ? "Verifying..."
+                                  : "Verify document"}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
