@@ -50,6 +50,40 @@ export type AdminProvidersResponse = {
   total: number;
 };
 
+export type AdminServiceStatus = "active" | "inactive";
+
+export type AdminServicesQuery = {
+  search?: string;
+  providerId?: number;
+  categoryId?: number;
+  status?: AdminServiceStatus;
+};
+
+export type AdminService = {
+  id: string | number;
+  title: string;
+  description?: string;
+  basePrice: string;
+  isActive: boolean;
+  status: AdminServiceStatus;
+  provider?: {
+    id: string | number;
+    displayName: string;
+    isVerified?: boolean;
+  } | null;
+  category?: {
+    id: string | number;
+    name: string;
+  } | null;
+  coverImageUrl?: string;
+  createdAt?: string;
+};
+
+export type AdminServicesResponse = {
+  services: AdminService[];
+  total: number;
+};
+
 type AdminDashboardStatsApiResponse =
   | AdminDashboardStats
   | {
@@ -72,8 +106,19 @@ type AdminProvidersApiResponse =
       count?: unknown;
     };
 
+type AdminServicesApiResponse =
+  | unknown[]
+  | {
+      services?: unknown[];
+      data?: unknown[] | { services?: unknown[]; items?: unknown[]; total?: unknown };
+      items?: unknown[];
+      total?: unknown;
+      count?: unknown;
+    };
+
 const ADMIN_DASHBOARD_STATS_ENDPOINT = "/admin/dashboard/stats";
 const ADMIN_PROVIDERS_ENDPOINT = "/admin/providers";
+const ADMIN_SERVICES_ENDPOINT = "/admin/services";
 
 const emptyStats: AdminDashboardStats = {
   totalProviders: 0,
@@ -421,6 +466,120 @@ const normalizeProvidersResponse = (
   };
 };
 
+const normalizeServiceStatus = (source: Record<string, unknown>): AdminServiceStatus => {
+  const rawStatus = readString(source, ["status", "serviceStatus"])?.toLowerCase();
+
+  if (rawStatus === "inactive") {
+    return "inactive";
+  }
+
+  if (rawStatus === "active") {
+    return "active";
+  }
+
+  return readBoolean(source, ["isActive", "is_active", "active"]) === false
+    ? "inactive"
+    : "active";
+};
+
+const normalizeServiceItem = (item: unknown, index: number): AdminService | null => {
+  if (!isRecord(item)) {
+    return null;
+  }
+
+  const provider = readRecord(item, ["provider"]);
+  const category = readRecord(item, ["category"]);
+  const status = normalizeServiceStatus(item);
+
+  return {
+    id: readString(item, ["id", "_id", "serviceId"]) ?? `service-${index}`,
+    title:
+      readString(item, ["title", "name", "serviceName", "service_name"]) ??
+      "Untitled service",
+    description: readString(item, ["description"]),
+    basePrice: readString(item, ["basePrice", "base_price", "price"]) ?? "0.00",
+    isActive: status === "active",
+    status,
+    provider: provider
+      ? {
+          id: readString(provider, ["id", "_id", "providerId"]) ?? "provider",
+          displayName:
+            readString(provider, ["displayName", "display_name", "name"]) ??
+            "Unnamed provider",
+          isVerified: readBoolean(provider, ["isVerified", "is_verified", "verified"]),
+        }
+      : null,
+    category: category
+      ? {
+          id: readString(category, ["id", "_id", "categoryId"]) ?? "category",
+          name: readString(category, ["name", "title"]) ?? "Uncategorized",
+        }
+      : null,
+    coverImageUrl: readString(item, ["coverImageUrl", "cover_image_url", "imageUrl"]),
+    createdAt: readString(item, ["createdAt", "created_at"]),
+  };
+};
+
+const readServicesPayload = (
+  response: AdminServicesApiResponse,
+): { items: unknown[]; total?: number } => {
+  if (Array.isArray(response)) {
+    return { items: response };
+  }
+
+  if (!isRecord(response)) {
+    return { items: [] };
+  }
+
+  if (Array.isArray(response.services)) {
+    return {
+      items: response.services,
+      total: readNumber(response, ["total", "count"]),
+    };
+  }
+
+  if (Array.isArray(response.items)) {
+    return {
+      items: response.items,
+      total: readNumber(response, ["total", "count"]),
+    };
+  }
+
+  if (Array.isArray(response.data)) {
+    return {
+      items: response.data,
+      total: readNumber(response, ["total", "count"]),
+    };
+  }
+
+  if (isRecord(response.data)) {
+    const nestedItems = response.data.services ?? response.data.items;
+
+    if (Array.isArray(nestedItems)) {
+      return {
+        items: nestedItems,
+        total: readNumber(response.data, ["total", "count"]),
+      };
+    }
+  }
+
+  return { items: [] };
+};
+
+const normalizeServicesResponse = (
+  response: AdminServicesApiResponse,
+): AdminServicesResponse => {
+  const { items, total } = readServicesPayload(response);
+  const services = items
+    .map((item, index) => normalizeServiceItem(item, index))
+    .filter((service): service is AdminService => Boolean(service));
+
+  return {
+    services,
+    total: total ?? services.length,
+  };
+};
+
 export const getAdminProviders = async (
   query: AdminProvidersQuery = {},
 ): Promise<AdminProvidersResponse> => {
@@ -437,7 +596,25 @@ export const getAdminProviders = async (
   return normalizeProvidersResponse(response);
 };
 
+export const getAdminServices = async (
+  query: AdminServicesQuery = {},
+): Promise<AdminServicesResponse> => {
+  const search = query.search?.trim();
+  const response = await api.get<AdminServicesApiResponse>(ADMIN_SERVICES_ENDPOINT, {
+    query: {
+      search: search || undefined,
+      providerId: query.providerId,
+      categoryId: query.categoryId,
+      status: query.status,
+    },
+    requireAuth: true,
+  });
+
+  return normalizeServicesResponse(response);
+};
+
 export const adminService = {
   getDashboardStats: getAdminDashboardStats,
   getProviders: getAdminProviders,
+  getServices: getAdminServices,
 };
