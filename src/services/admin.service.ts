@@ -180,6 +180,10 @@ export type AdminServiceActionResponse = {
   service: AdminService;
 };
 
+export type AdminVerificationActionResponse = {
+  message: string;
+};
+
 type AdminDashboardStatsApiResponse =
   | AdminDashboardStats
   | {
@@ -220,6 +224,13 @@ type AdminServiceActionApiResponse =
       data?: unknown | { message?: unknown; service?: unknown };
     };
 
+type AdminVerificationActionApiResponse =
+  | unknown
+  | {
+      message?: unknown;
+      data?: unknown;
+    };
+
 type AdminProviderDetailsApiResponse =
   | unknown
   | {
@@ -233,6 +244,7 @@ type AdminProviderDetailsApiResponse =
 
 const ADMIN_DASHBOARD_STATS_ENDPOINT = "/admin/dashboard/stats";
 const ADMIN_PROVIDERS_ENDPOINT = "/admin/providers";
+const ADMIN_PROVIDER_DOCUMENTS_ENDPOINT = "/admin/provider-documents";
 const ADMIN_PROVIDER_DETAILS_ENDPOINT = "/admin/providers";
 const ADMIN_SERVICES_ENDPOINT = "/admin/services";
 
@@ -1294,6 +1306,19 @@ const normalizeServiceActionResponse = (
   };
 };
 
+const normalizeVerificationActionResponse = (
+  response: AdminVerificationActionApiResponse,
+  fallbackMessage: string,
+): AdminVerificationActionResponse => {
+  const source = isRecord(response) ? response : {};
+  const data = source.data;
+  const nestedSource = isRecord(data) ? data : source;
+
+  return {
+    message: readString(nestedSource, ["message"]) ?? fallbackMessage,
+  };
+};
+
 export const getAdminProviders = async (
   query: AdminProvidersQuery = {},
 ): Promise<AdminProvidersResponse> => {
@@ -1372,10 +1397,78 @@ export const getAdminProviderDetails = async (
   return normalizeAdminProviderDetails(response);
 };
 
+export const verifyAdminProviderDocument = async (
+  documentId: string | number,
+): Promise<AdminVerificationActionResponse> => {
+  const response = await api.patch<AdminVerificationActionApiResponse>(
+    `${ADMIN_PROVIDER_DOCUMENTS_ENDPOINT}/${encodeURIComponent(String(documentId))}/verify`,
+    {
+      requireAuth: true,
+    },
+  );
+
+  return normalizeVerificationActionResponse(
+    response,
+    "Document verified successfully.",
+  );
+};
+
+export const unverifyAdminProviderDocument = async (
+  documentId: string | number,
+): Promise<AdminVerificationActionResponse> => {
+  const response = await api.patch<AdminVerificationActionApiResponse>(
+    `${ADMIN_PROVIDER_DOCUMENTS_ENDPOINT}/${encodeURIComponent(String(documentId))}/unverify`,
+    {
+      requireAuth: true,
+    },
+  );
+
+  return normalizeVerificationActionResponse(
+    response,
+    "Document unverified successfully.",
+  );
+};
+
+export const verifyAdminProvider = async (
+  providerId: string | number,
+): Promise<AdminVerificationActionResponse> => {
+  const response = await api.patch<AdminVerificationActionApiResponse>(
+    `${ADMIN_PROVIDER_DETAILS_ENDPOINT}/${encodeURIComponent(String(providerId))}/verify`,
+    {
+      requireAuth: true,
+    },
+  );
+
+  return normalizeVerificationActionResponse(
+    response,
+    "Provider verified successfully.",
+  );
+};
+
+export const unverifyAdminProvider = async (
+  providerId: string | number,
+): Promise<AdminVerificationActionResponse> => {
+  const response = await api.patch<AdminVerificationActionApiResponse>(
+    `${ADMIN_PROVIDER_DETAILS_ENDPOINT}/${encodeURIComponent(String(providerId))}/unverify`,
+    {
+      requireAuth: true,
+    },
+  );
+
+  return normalizeVerificationActionResponse(
+    response,
+    "Provider unverified successfully.",
+  );
+};
+
 export const adminService = {
   getDashboardStats: getAdminDashboardStats,
   getProviders: getAdminProviders,
   getProviderDetails: getAdminProviderDetails,
+  verifyProviderDocument: verifyAdminProviderDocument,
+  unverifyProviderDocument: unverifyAdminProviderDocument,
+  verifyProvider: verifyAdminProvider,
+  unverifyProvider: unverifyAdminProvider,
   getServices: getAdminServices,
   deactivateService: deactivateAdminService,
   reactivateService: reactivateAdminService,
