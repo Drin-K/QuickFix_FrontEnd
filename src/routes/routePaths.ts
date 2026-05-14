@@ -18,6 +18,7 @@ export const routePaths = {
   adminHome: "/admin-home",
   adminDashboard: "/admin/dashboard",
   adminProviders: "/admin/providers",
+  adminServices: "/admin/services",
   dashboard: "/dashboard",
   serviceDetails: "/services/:id",
 } as const;

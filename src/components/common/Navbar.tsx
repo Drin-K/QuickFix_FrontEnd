@@ -37,6 +37,7 @@ export const Navbar = () => {
       ? [
           { label: "Dashboard", to: routePaths.adminDashboard },
           { label: "Providers", to: routePaths.adminProviders },
+          { label: "Services", to: routePaths.adminServices },
           ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
         ]
     : [
