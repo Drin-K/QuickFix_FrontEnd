@@ -38,18 +38,19 @@ export const Navbar = () => {
           { label: "Dashboard", to: routePaths.adminDashboard },
           { label: "Providers", to: routePaths.adminProviders },
           { label: "Services", to: routePaths.adminServices },
+          { label: "Clients", to: routePaths.adminClients },
           ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
         ]
-    : [
-        { label: "Home", to: homeRoute },
-        { label: "Marketplace", to: routePaths.services },
-        ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
-        ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
-        ...(isClient ? [{ label: "Favorites", to: routePaths.favorites }] : []),
-        ...(!isClient && !isProvider && !isAdmin && authenticated
-          ? [{ label: "Dashboard", to: routePaths.dashboard }]
-          : []),
-      ];
+      : [
+          { label: "Home", to: homeRoute },
+          { label: "Marketplace", to: routePaths.services },
+          ...(authenticated ? [{ label: "Profile", to: routePaths.profile }] : []),
+          ...(isClient ? [{ label: "My Bookings", to: routePaths.myBookings }] : []),
+          ...(isClient ? [{ label: "Favorites", to: routePaths.favorites }] : []),
+          ...(!isClient && !isProvider && !isAdmin && authenticated
+            ? [{ label: "Dashboard", to: routePaths.dashboard }]
+            : []),
+        ];
 
   const handleLogout = () => {
     clearAuthSession();
