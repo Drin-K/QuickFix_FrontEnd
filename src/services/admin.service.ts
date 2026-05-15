@@ -50,6 +50,20 @@ export type AdminProvidersResponse = {
   total: number;
 };
 
+export type AdminClient = {
+  id: string | number;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  bookingCount: number;
+  createdAt?: string;
+};
+
+export type AdminClientsResponse = {
+  clients: AdminClient[];
+  total: number;
+};
+
 export type AdminServiceStatus = "active" | "inactive";
 
 export type AdminServicesQuery = {
@@ -216,6 +230,16 @@ type AdminServicesApiResponse =
       count?: unknown;
     };
 
+type AdminClientsApiResponse =
+  | unknown[]
+  | {
+      clients?: unknown[];
+      data?: unknown[] | { clients?: unknown[]; items?: unknown[]; total?: unknown };
+      items?: unknown[];
+      total?: unknown;
+      count?: unknown;
+    };
+
 type AdminServiceActionApiResponse =
   | unknown
   | {
@@ -247,6 +271,7 @@ const ADMIN_PROVIDERS_ENDPOINT = "/admin/providers";
 const ADMIN_PROVIDER_DOCUMENTS_ENDPOINT = "/admin/provider-documents";
 const ADMIN_PROVIDER_DETAILS_ENDPOINT = "/admin/providers";
 const ADMIN_SERVICES_ENDPOINT = "/admin/services";
+const ADMIN_CLIENTS_ENDPOINT = "/admin/clients";
 
 const emptyStats: AdminDashboardStats = {
   totalProviders: 0,
@@ -429,7 +454,9 @@ const normalizeActivityItem = (
   };
 };
 
-const normalizeRecentActivity = (source: Record<string, unknown>): AdminRecentActivity[] => {
+const normalizeRecentActivity = (
+  source: Record<string, unknown>,
+): AdminRecentActivity[] => {
   const value =
     source.recentActivity ??
     source.recent_activity ??
@@ -632,6 +659,95 @@ const normalizeProvidersResponse = (
   };
 };
 
+const normalizeClientItem = (item: unknown, index: number): AdminClient | null => {
+  if (!isRecord(item)) {
+    return null;
+  }
+
+  const user = readRecord(item, ["user", "client", "profile"]);
+
+  return {
+    id: readString(item, ["id", "_id", "clientId", "userId"]) ?? `client-${index}`,
+    fullName:
+      readString(item, ["fullName", "full_name", "name", "clientName"]) ??
+      readString(user ?? {}, ["fullName", "full_name", "name", "email"]) ??
+      "Unnamed client",
+    email: readString(user ?? item, ["email", "clientEmail"]),
+    phone: readString(user ?? item, ["phone", "phoneNumber", "phone_number", "mobile"]),
+    bookingCount: readNumber(item, [
+      "bookingCount",
+      "booking_count",
+      "bookingsCount",
+      "bookings_count",
+      "totalBookings",
+      "total_bookings",
+    ]),
+    createdAt:
+      readString(item, ["createdAt", "created_at"]) ??
+      readString(user ?? {}, ["createdAt", "created_at"]),
+  };
+};
+
+const readClientsPayload = (
+  response: AdminClientsApiResponse,
+): { items: unknown[]; total?: number } => {
+  if (Array.isArray(response)) {
+    return { items: response };
+  }
+
+  if (!isRecord(response)) {
+    return { items: [] };
+  }
+
+  if (Array.isArray(response.clients)) {
+    return {
+      items: response.clients,
+      total: readNumber(response, ["total", "count"]),
+    };
+  }
+
+  if (Array.isArray(response.items)) {
+    return {
+      items: response.items,
+      total: readNumber(response, ["total", "count"]),
+    };
+  }
+
+  if (Array.isArray(response.data)) {
+    return {
+      items: response.data,
+      total: readNumber(response, ["total", "count"]),
+    };
+  }
+
+  if (isRecord(response.data)) {
+    const nestedItems = response.data.clients ?? response.data.items;
+
+    if (Array.isArray(nestedItems)) {
+      return {
+        items: nestedItems,
+        total: readNumber(response.data, ["total", "count"]),
+      };
+    }
+  }
+
+  return { items: [] };
+};
+
+const normalizeClientsResponse = (
+  response: AdminClientsApiResponse,
+): AdminClientsResponse => {
+  const { items, total } = readClientsPayload(response);
+  const clients = items
+    .map((item, index) => normalizeClientItem(item, index))
+    .filter((client): client is AdminClient => Boolean(client));
+
+  return {
+    clients,
+    total: total ?? clients.length,
+  };
+};
+
 const normalizeServiceStatus = (source: Record<string, unknown>): AdminServiceStatus => {
   const rawStatus = readString(source, ["status", "serviceStatus"])?.toLowerCase();
 
@@ -806,12 +922,12 @@ const normalizeProviderDetailsProvider = (
     ...baseProvider,
     displayName:
       baseProvider.displayName === "Unnamed provider"
-        ? readString(fallbackSource, [
+        ? (readString(fallbackSource, [
             "displayName",
             "display_name",
             "name",
             "businessName",
-          ]) ?? baseProvider.displayName
+          ]) ?? baseProvider.displayName)
         : baseProvider.displayName,
     ownerName:
       baseProvider.ownerName ??
@@ -833,12 +949,14 @@ const normalizeProviderDetailsProvider = (
       baseProvider.createdAt ??
       readString(source, ["createdAt", "created_at"]) ??
       readString(fallbackSource, ["createdAt", "created_at"]),
-    description: readString(source, [
-      "description",
-      "providerDescription",
-      "bio",
-      "summary",
-    ]) ?? readString(fallbackSource, ["description", "providerDescription", "bio", "summary"]),
+    description:
+      readString(source, ["description", "providerDescription", "bio", "summary"]) ??
+      readString(fallbackSource, [
+        "description",
+        "providerDescription",
+        "bio",
+        "summary",
+      ]),
     phone:
       readString(owner ?? source, ["phone", "phoneNumber", "mobile"]) ??
       readString(fallbackSource, ["phone", "phoneNumber", "mobile"]),
@@ -873,20 +991,10 @@ const normalizeProviderDocument = (
   return {
     id: readString(item, ["id", "_id", "documentId"]) ?? `document-${index}`,
     documentType:
-      readString(item, [
-        "documentType",
-        "document_type",
-        "type",
-        "name",
-        "label",
-      ]) ?? "Document",
-    fileUrl: readString(item, [
-      "fileUrl",
-      "file_url",
-      "url",
-      "documentUrl",
-      "path",
-    ]) ?? "",
+      readString(item, ["documentType", "document_type", "type", "name", "label"]) ??
+      "Document",
+    fileUrl:
+      readString(item, ["fileUrl", "file_url", "url", "documentUrl", "path"]) ?? "",
     isVerified: readBoolean(item, ["isVerified", "is_verified", "verified"]) ?? false,
     submittedAt: readString(item, [
       "submittedAt",
@@ -900,12 +1008,7 @@ const normalizeProviderDocument = (
       "verifiedAt",
       "verified_at",
     ]),
-    reviewNotes: readString(item, [
-      "reviewNotes",
-      "review_notes",
-      "notes",
-      "comment",
-    ]),
+    reviewNotes: readString(item, ["reviewNotes", "review_notes", "notes", "comment"]),
   };
 };
 
@@ -1045,7 +1148,12 @@ const normalizeProviderDocuments = (
   ]);
 
   const documentsPayload =
-    readArray(source, ["documents", "providerDocuments", "verificationDocuments", "files"]) ??
+    readArray(source, [
+      "documents",
+      "providerDocuments",
+      "verificationDocuments",
+      "files",
+    ]) ??
     (verificationRecord
       ? readArray(verificationRecord, [
           "documents",
@@ -1095,19 +1203,14 @@ const normalizeProviderServicesSummary = (
       "count",
     ]) || services.length;
   const activeServices =
-    readNumber(summarySource, [
-      "activeServices",
-      "active_services",
-      "activeCount",
-    ]) ||
+    readNumber(summarySource, ["activeServices", "active_services", "activeCount"]) ||
     services.filter((service) => service.status === "active").length;
   const inactiveServices =
     readNumber(summarySource, [
       "inactiveServices",
       "inactive_services",
       "inactiveCount",
-    ]) ||
-    services.filter((service) => service.status === "inactive").length;
+    ]) || services.filter((service) => service.status === "inactive").length;
 
   return {
     totalServices: totalServices || services.length,
@@ -1142,15 +1245,10 @@ const normalizeProviderVerificationDetails = (
       "documents_count",
     ]) || documents.length;
   const verifiedDocuments =
-    readNumber(verificationSource, [
-      "verifiedDocuments",
-      "verified_documents",
-    ]) || documents.filter((document) => document.isVerified).length;
+    readNumber(verificationSource, ["verifiedDocuments", "verified_documents"]) ||
+    documents.filter((document) => document.isVerified).length;
   const pendingDocuments =
-    readNumber(verificationSource, [
-      "pendingDocuments",
-      "pending_documents",
-    ]) ||
+    readNumber(verificationSource, ["pendingDocuments", "pending_documents"]) ||
     documents.filter((document) => !document.isVerified).length;
   const rawStatus = readString(verificationSource, [
     "status",
@@ -1162,11 +1260,12 @@ const normalizeProviderVerificationDetails = (
     "is_verified",
     "verified",
   ]);
-  const isSetupComplete = readBoolean(verificationSource, [
-    "isSetupComplete",
-    "is_setup_complete",
-    "setupComplete",
-  ]) ?? submittedDocuments > 0;
+  const isSetupComplete =
+    readBoolean(verificationSource, [
+      "isSetupComplete",
+      "is_setup_complete",
+      "setupComplete",
+    ]) ?? submittedDocuments > 0;
 
   let status: AdminProviderVerificationStatus = "pending";
 
@@ -1199,12 +1298,13 @@ const normalizeProviderVerificationDetails = (
     isVerified: status === "verified",
     status,
     statusLabel,
-    totalDocuments: readNumber(verificationSource, [
-      "totalDocuments",
-      "total_documents",
-      "documentsCount",
-      "documents_count",
-    ]) || submittedDocuments,
+    totalDocuments:
+      readNumber(verificationSource, [
+        "totalDocuments",
+        "total_documents",
+        "documentsCount",
+        "documents_count",
+      ]) || submittedDocuments,
     submittedDocuments,
     verifiedDocuments,
     pendingDocuments,
@@ -1244,7 +1344,8 @@ const normalizeAdminProviderDetails = (
   }
 
   const providerSource =
-    readRecord(source, ["provider", "providerDetails", "profile", "basicProfile"]) ?? source;
+    readRecord(source, ["provider", "providerDetails", "profile", "basicProfile"]) ??
+    source;
   const detailsSource =
     readRecord(source, ["details", "profileDetails", "providerDetails"]) ?? source;
   const provider = normalizeProviderDetailsProvider(providerSource, source);
@@ -1267,7 +1368,8 @@ const normalizeAdminProviderDetails = (
   const providerServicesSummary = normalizeProviderServicesSummary(providerSource);
   const detailsServicesSummary = normalizeProviderServicesSummary(detailsSource);
   const servicesSummary =
-    providerServicesSummary.services.length > 0 || providerServicesSummary.totalServices > 0
+    providerServicesSummary.services.length > 0 ||
+    providerServicesSummary.totalServices > 0
       ? providerServicesSummary
       : detailsServicesSummary.services.length > 0 ||
           detailsServicesSummary.totalServices > 0
@@ -1277,7 +1379,8 @@ const normalizeAdminProviderDetails = (
 
   return {
     provider,
-    companyDetails: companyDetails ?? normalizeProviderCompanyDetails(providerSource) ?? null,
+    companyDetails:
+      companyDetails ?? normalizeProviderCompanyDetails(providerSource) ?? null,
     individualDetails:
       individualDetails ?? normalizeProviderIndividualDetails(providerSource) ?? null,
     documents,
@@ -1352,6 +1455,14 @@ export const getAdminServices = async (
   return normalizeServicesResponse(response);
 };
 
+export const getAdminClients = async (): Promise<AdminClientsResponse> => {
+  const response = await api.get<AdminClientsApiResponse>(ADMIN_CLIENTS_ENDPOINT, {
+    requireAuth: true,
+  });
+
+  return normalizeClientsResponse(response);
+};
+
 export const deactivateAdminService = async (
   serviceId: string | number,
 ): Promise<AdminServiceActionResponse> => {
@@ -1362,10 +1473,7 @@ export const deactivateAdminService = async (
     },
   );
 
-  return normalizeServiceActionResponse(
-    response,
-    "Service deactivated successfully.",
-  );
+  return normalizeServiceActionResponse(response, "Service deactivated successfully.");
 };
 
 export const reactivateAdminService = async (
@@ -1378,10 +1486,7 @@ export const reactivateAdminService = async (
     },
   );
 
-  return normalizeServiceActionResponse(
-    response,
-    "Service reactivated successfully.",
-  );
+  return normalizeServiceActionResponse(response, "Service reactivated successfully.");
 };
 
 export const getAdminProviderDetails = async (
@@ -1407,10 +1512,7 @@ export const verifyAdminProviderDocument = async (
     },
   );
 
-  return normalizeVerificationActionResponse(
-    response,
-    "Document verified successfully.",
-  );
+  return normalizeVerificationActionResponse(response, "Document verified successfully.");
 };
 
 export const unverifyAdminProviderDocument = async (
@@ -1439,10 +1541,7 @@ export const verifyAdminProvider = async (
     },
   );
 
-  return normalizeVerificationActionResponse(
-    response,
-    "Provider verified successfully.",
-  );
+  return normalizeVerificationActionResponse(response, "Provider verified successfully.");
 };
 
 export const unverifyAdminProvider = async (
@@ -1470,6 +1569,7 @@ export const adminService = {
   verifyProvider: verifyAdminProvider,
   unverifyProvider: unverifyAdminProvider,
   getServices: getAdminServices,
+  getClients: getAdminClients,
   deactivateService: deactivateAdminService,
   reactivateService: reactivateAdminService,
 };
